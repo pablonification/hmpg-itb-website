@@ -113,11 +113,11 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         <section className="bg-brand-sand pb-20">
           <div className="mx-auto max-w-[1232px] px-4 sm:px-6 lg:px-8">
             <div
-              className="bg-brand-sand relative z-20 -mt-3 flex flex-col justify-between gap-6 border border-[rgba(140,113,110,0.08)] p-2 shadow-[0_5px_18px_rgba(0,0,0,0.3)] md:-mt-5 md:flex-row md:items-center"
+              className="bg-brand-sand relative z-20 -mt-10 flex flex-col items-stretch gap-4 border border-[rgba(140,113,110,0.08)] p-4 shadow-[0_10px_30px_rgba(31,27,16,0.16)] sm:-mt-12 md:flex-row md:items-center md:gap-8 md:p-6 lg:-mt-14"
               id="drive-akademik"
             >
-              <div className="flex min-h-16 items-center gap-6 p-4 md:p-6">
-                <div className="bg-brand-surface flex h-16 w-16 items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center gap-4">
+                <div className="bg-brand-surface flex h-16 w-16 shrink-0 items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                   <img
                     alt=""
                     aria-hidden="true"
@@ -126,15 +126,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                   />
                 </div>
 
-                <div className="flex min-h-16 max-w-[29rem] items-center">
-                  <p className="font-epilogue text-[24px] font-bold tracking-[-0.03em] text-[#1f1b10]">
-                    {reportsPage.driveTitle}
-                  </p>
-                </div>
+                <p className="font-epilogue text-[18px] leading-tight font-bold tracking-[-0.03em] text-[#1f1b10] md:text-[24px]">
+                  {reportsPage.driveTitle}
+                </p>
               </div>
 
               <a
-                className="font-manrope mx-4 inline-flex min-w-[188px] shrink-0 items-center justify-center gap-2 bg-[#1f1b10] px-8 py-4 text-xs font-bold tracking-[0.1em] whitespace-nowrap text-white uppercase transition duration-300 hover:bg-[#2f2818] md:mx-6"
+                className="font-manrope inline-flex shrink-0 items-center justify-center gap-2 bg-[#1f1b10] px-6 py-4 text-xs font-bold tracking-[0.1em] text-white uppercase transition duration-300 hover:bg-[#2f2818] md:ml-auto"
                 href={store.settings.driveAkademikUrl}
                 rel="noreferrer"
                 target="_blank"

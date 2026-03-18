@@ -14,12 +14,12 @@ export const seedSettings: SiteSettings = {
   footerLogoSrc: "/assets/figma/footer-logo-mark.png",
   addressLines: [
     "Gedung Labtek IIA, Kampus ITB Jatinangor",
-    "Jl. Raya Bandung Sumedang KM 21,",
+    "Jl. Let. Jend. Purn. Dr.(HC) Mashudi No. 1, Jatinangor,",
     "Kab. Sumedang, Jawa Barat 45363.",
   ],
   footerAddressLines: [
-    "Gedung Labtek III, Kampus ITB Jatinangor.",
-    "Jl. Raya Bandung Sumedang KM 21,",
+    "Gedung Labtek IIA, Kampus ITB Jatinangor",
+    "Jl. Let. Jend. Purn. Dr.(HC) Mashudi No. 1, Jatinangor,",
     "Kab. Sumedang, Jawa Barat 45363.",
   ],
   email: "hmpg_itb@km.itb.ac.id",

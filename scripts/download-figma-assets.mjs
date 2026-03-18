@@ -201,6 +201,10 @@ const assets = [
     "https://www.figma.com/api/mcp/asset/077b5ec7-5373-45d5-aeae-550af542dff0",
   ],
   [
+    "contact-hero-card.png",
+    "https://www.figma.com/api/mcp/asset/b5891773-40f4-498d-aaa3-1a5f1a4c1dd6",
+  ],
+  [
     "contact-paper-texture.png",
     "https://www.figma.com/api/mcp/asset/5baa498b-223c-48de-b65e-b1e02ffbd661",
   ],

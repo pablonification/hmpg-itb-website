@@ -68,7 +68,7 @@ export default async function AboutPage() {
               <div className="relative h-full min-h-[595px] w-full">
                 <img
                   alt={about.historyTitle}
-                  className="absolute inset-0 h-full w-full object-cover object-[46%_center] grayscale"
+                  className="absolute inset-0 h-full w-full object-cover object-[63%_center] grayscale"
                   src={about.historyImageSrc}
                 />
               </div>

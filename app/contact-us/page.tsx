@@ -20,8 +20,15 @@ export default async function ContactPage() {
 
       <main>
         <section className="grid min-h-[740px] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          <div className="bg-brand-maroon flex px-6 py-20 text-white sm:px-8 md:py-24 lg:pt-32 lg:pr-12 lg:pb-24 lg:pl-[max(3rem,calc((100vw-1280px)/2+3rem))]">
-            <div className="mt-auto w-full max-w-[34rem]">
+          <div className="bg-brand-maroon relative flex overflow-hidden px-6 py-20 text-white sm:px-8 md:py-24 lg:pt-32 lg:pr-12 lg:pb-24 lg:pl-[max(3rem,calc((100vw-1280px)/2+3rem))]">
+            <img
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+              src="/assets/figma/contact-hero-card.png"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-[rgba(113,34,36,0.7)]" />
+            <div className="relative mt-auto w-full max-w-[34rem]">
               <p className="font-manrope text-xs tracking-[0.1em] text-white/70 uppercase">
                 {contact.heroEyebrow}
               </p>
@@ -126,10 +133,9 @@ export default async function ContactPage() {
         <section className="relative h-[42rem] overflow-hidden bg-white">
           <img
             alt={store.settings.shortName}
-            className="absolute inset-0 h-full w-full scale-[1.02] object-cover blur-[2px]"
+            className="absolute inset-0 h-full w-full scale-[1.02] object-cover"
             src={contact.showcaseImageSrc}
           />
-          <div className="bg-brand-wine/35 absolute inset-0" />
           <div className="absolute inset-0 flex items-center justify-center gap-6 px-6 text-center md:gap-10">
             <img
               alt={`${store.settings.shortName} showcase logo`}
