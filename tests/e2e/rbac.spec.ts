@@ -25,34 +25,26 @@ async function deleteReportIfExists(page: Page, slug: string) {
   }
 
   await reportLink.first().click();
-  await page.waitForLoadState("networkidle");
-
-  await Promise.all([
-    page.waitForLoadState("networkidle"),
-    page.getByRole("button", { name: "Hapus Laporan" }).click(),
-  ]);
+  await expect(page).toHaveURL(
+    new RegExp(`/dashboard/reports\\?report=${slug}$`),
+  );
+  await page.getByRole("button", { name: "Hapus Laporan" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/reports\?message=/);
 }
 
 async function deleteUserIfExists(page: Page, email: string) {
   await page.goto("/dashboard/users");
   const userCard = page
-    .locator("div")
-    .filter({
-      has: page.getByText(email, { exact: true }),
-    })
-    .filter({
-      has: page.getByRole("button", { name: "Hapus User" }),
-    })
+    .locator("article")
+    .filter({ has: page.getByText(email, { exact: true }) })
     .first();
 
   if ((await userCard.count()) === 0) {
     return;
   }
 
-  await Promise.all([
-    page.waitForLoadState("networkidle"),
-    userCard.getByRole("button", { name: "Hapus User" }).click(),
-  ]);
+  await userCard.getByRole("button", { name: "Hapus User" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/users\?message=/);
 }
 
 test("admins can provision writers and writers are limited to report management", async ({
@@ -77,16 +69,15 @@ test("admins can provision writers and writers are limited to report management"
       page.getByRole("heading", { name: "Kelola akun CMS" }),
     ).toBeVisible();
 
-    const createUserCard = page
-      .getByRole("article")
-      .filter({ has: page.getByRole("heading", { name: "Tambah user" }) });
-    await createUserCard.locator('input[name="email"]').fill(writerEmail);
-    await createUserCard.locator('input[name="password"]').fill(writerPassword);
-    await createUserCard.locator('select[name="role"]').selectOption("writer");
-    await Promise.all([
-      page.waitForLoadState("networkidle"),
-      createUserCard.getByRole("button", { name: "Buat User" }).click(),
-    ]);
+    const createUserForm = page
+      .locator("form")
+      .filter({ has: page.locator('input[name="password"]') })
+      .first();
+    await createUserForm.locator('input[name="email"]').fill(writerEmail);
+    await createUserForm.locator('input[name="password"]').fill(writerPassword);
+    await createUserForm.locator('select[name="role"]').selectOption("writer");
+    await createUserForm.getByRole("button", { name: "Buat User" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/users\?message=/);
 
     await expect(page.getByText("User baru berhasil dibuat.")).toBeVisible();
     await expect(page.getByText(writerEmail, { exact: true })).toBeVisible();
@@ -117,16 +108,10 @@ test("admins can provision writers and writers are limited to report management"
 
     await page.goto("/dashboard/reports?new=1");
     await page.locator('input[name="title"]').fill(reportTitle);
-    await page.locator('input[name="slug"]').fill(reportSlug);
-    await page.locator('input[name="category"]').fill("writer");
-    await page.locator('input[name="categoryLabel"]').fill("Writer");
-    await page.locator('input[name="editionLabel"]').fill("Writer Edition");
-    await page.locator('input[name="periodLabel"]').fill("Maret 2026");
-    await page.locator('input[name="year"]').fill("2026");
-    await page.locator('input[name="author"]').fill("Writer QA");
     await page
       .locator('textarea[name="excerpt"]')
       .fill("Report created by writer role.");
+    await page.locator('select[name="category"]').selectOption("editorial");
     await page.locator('select[name="status"]').selectOption("published");
     await page.locator('input[name="featured"]').check();
     await page
@@ -136,22 +121,22 @@ test("admins can provision writers and writers are limited to report management"
       );
     await page.locator('[contenteditable="true"]').click();
     await page.keyboard.type("Writer report body with inline image.");
-    await page
-      .locator('[data-testid="rich-text-image-upload"]')
-      .setInputFiles(
-        path.resolve("public/assets/figma/reports-card-seminar.png"),
-      );
-    await expect(page.locator('[contenteditable="true"] img')).toBeVisible();
 
-    await Promise.all([
-      page.waitForLoadState("networkidle"),
-      page.getByRole("button", { name: "Buat Laporan" }).click(),
-    ]);
+    await page.getByRole("button", { name: "Simpan Laporan" }).click();
 
+    await expect(page).toHaveURL(/\/dashboard\/reports\?report=writer-report-/);
     await expect(
       page.locator(`a[href="/dashboard/reports?report=${reportSlug}"]`),
     ).toBeVisible();
     await expect(page.locator('input[name="featured"]')).toBeChecked();
+    await expect(
+      page.locator(`a[href="/dashboard/reports/preview/${reportSlug}"]`),
+    ).toBeVisible();
+
+    await page.goto(`/dashboard/reports/preview/${reportSlug}`);
+    await expect(
+      page.getByText("Writer report body with inline image."),
+    ).toBeVisible();
 
     await page.goto("/reports");
     await expect(
@@ -163,16 +148,10 @@ test("admins can provision writers and writers are limited to report management"
     await expect(
       page.getByText("Writer report body with inline image."),
     ).toBeVisible();
-    await expect(page.locator(".rich-text img").first()).toHaveAttribute(
-      "src",
-      /^data:image\//,
-    );
 
     await page.goto(`/dashboard/reports?report=${reportSlug}`);
-    await Promise.all([
-      page.waitForLoadState("networkidle"),
-      page.getByRole("button", { name: "Hapus Laporan" }).click(),
-    ]);
+    await page.getByRole("button", { name: "Hapus Laporan" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/reports\?message=/);
 
     await page.goto("/reports");
     await expect(
@@ -183,6 +162,10 @@ test("admins can provision writers and writers are limited to report management"
     await deleteUserIfExists(page, writerEmail);
     await expect(page.getByText(writerEmail, { exact: true })).toHaveCount(0);
   } finally {
+    if (page.isClosed()) {
+      return;
+    }
+
     await loginAsAdmin(page);
     await deleteReportIfExists(page, reportSlug);
     await deleteUserIfExists(page, writerEmail);

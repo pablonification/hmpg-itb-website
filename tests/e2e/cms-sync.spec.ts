@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 async function loginAsAdmin(page: Page) {
   await page.goto("/dashboard/login");
@@ -10,17 +10,20 @@ async function loginAsAdmin(page: Page) {
   await expect(page).toHaveURL(/\/dashboard$/);
 }
 
-function getSection(page: Page, title: string) {
-  return page.locator("section").filter({
-    has: page.getByRole("heading", { name: title }),
-  });
+async function gotoContentSection(page: Page, section: string) {
+  await page.goto(`/dashboard/content?section=${section}`);
+  await expect(page).toHaveURL(
+    new RegExp(`/dashboard/content\\?section=${section}$`),
+  );
 }
 
-async function saveSection(section: Locator) {
-  await Promise.all([
-    section.page().waitForLoadState("networkidle"),
-    section.getByRole("button", { name: "Simpan" }).click(),
-  ]);
+async function saveCurrentContentPage(page: Page) {
+  const url = new URL(page.url());
+  const section = url.searchParams.get("section") ?? "settings";
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/dashboard/content\\?section=${section}&message=`),
+  );
 }
 
 async function deleteReportIfExists(page: Page, slug: string) {
@@ -34,12 +37,11 @@ async function deleteReportIfExists(page: Page, slug: string) {
   }
 
   await reportLink.first().click();
-  await page.waitForLoadState("networkidle");
-
-  await Promise.all([
-    page.waitForLoadState("networkidle"),
-    page.getByRole("button", { name: "Hapus Laporan" }).click(),
-  ]);
+  await expect(page).toHaveURL(
+    new RegExp(`/dashboard/reports\\?report=${slug}$`),
+  );
+  await page.getByRole("button", { name: "Hapus Laporan" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/reports\?message=/);
 }
 
 test("CMS-owned content stays in sync with dashboard and public site", async ({
@@ -50,77 +52,59 @@ test("CMS-owned content stays in sync with dashboard and public site", async ({
   const suffix = `sync-${Date.now()}`;
   const shortName = `HMPG ${suffix}`;
   const reportsTitle = `Archive ${suffix}`;
+  const periodLabel = `Cabinet ${suffix}`;
   const latestTitle = `Latest ${suffix}`;
   const socialTitle = `Social ${suffix}`;
-  const periodLabel = `Cabinet ${suffix}`;
   const reportTitle = `CMS Report ${suffix}`;
   const reportSlug = `cms-report-${suffix}`;
-  const publishedAt = new Date(Date.now() + 60_000).toISOString();
 
   let initialShortName = "";
   let initialReportsTitle = "";
   let initialPeriodLabel = "";
   let initialLatestTitle = "";
   let initialSocialTitle = "";
-  let initialFeaturedSlug = "";
   let initialHeaderLogoSrc = "";
   let createdReport = false;
 
   await loginAsAdmin(page);
 
   try {
-    await page.goto("/dashboard/content");
-    await expect(page.getByText("Activity Highlights")).toHaveCount(0);
-
-    const globalSection = getSection(page, "Global Settings");
-    initialShortName = await globalSection
+    await gotoContentSection(page, "settings");
+    initialShortName = await page
       .locator('input[name="shortName"]')
       .inputValue();
-    await globalSection.locator('input[name="shortName"]').fill(shortName);
-    await saveSection(globalSection);
+    await page.locator('input[name="shortName"]').fill(shortName);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const homeSection = getSection(page, "Home Page");
-    initialReportsTitle = await homeSection
+    await gotoContentSection(page, "home");
+    initialReportsTitle = await page
       .locator('input[name="reportsSectionTitle"]')
       .inputValue();
-    await homeSection
-      .locator('input[name="reportsSectionTitle"]')
-      .fill(reportsTitle);
-    await saveSection(homeSection);
+    await page.locator('input[name="reportsSectionTitle"]').fill(reportsTitle);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const aboutSection = getSection(page, "About Page");
-    initialPeriodLabel = await aboutSection
+    await gotoContentSection(page, "about");
+    initialPeriodLabel = await page
       .locator('input[name="valuesSectionPeriodLabel"]')
       .inputValue();
-    await aboutSection
+    await page
       .locator('input[name="valuesSectionPeriodLabel"]')
       .fill(periodLabel);
-    await saveSection(aboutSection);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const reportsSection = getSection(page, "Reports Page");
-    initialLatestTitle = await reportsSection
+    await gotoContentSection(page, "reports");
+    initialLatestTitle = await page
       .locator('input[name="latestSectionTitle"]')
       .inputValue();
-    initialFeaturedSlug = await reportsSection
-      .locator('input[name="featuredReportSlug"]')
-      .inputValue();
-    await reportsSection
-      .locator('input[name="latestSectionTitle"]')
-      .fill(latestTitle);
-    await saveSection(reportsSection);
+    await page.locator('input[name="latestSectionTitle"]').fill(latestTitle);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const contactSection = getSection(page, "Contact Page");
-    initialSocialTitle = await contactSection
+    await gotoContentSection(page, "contact");
+    initialSocialTitle = await page
       .locator('input[name="socialSectionTitle"]')
       .inputValue();
-    await contactSection
-      .locator('input[name="socialSectionTitle"]')
-      .fill(socialTitle);
-    await saveSection(contactSection);
+    await page.locator('input[name="socialSectionTitle"]').fill(socialTitle);
+    await saveCurrentContentPage(page);
 
     await page.goto("/");
     await expect(
@@ -146,37 +130,30 @@ test("CMS-owned content stays in sync with dashboard and public site", async ({
 
     await page.goto("/dashboard/reports?new=1");
     await page.locator('input[name="title"]').fill(reportTitle);
-    await page.locator('input[name="slug"]').fill(reportSlug);
-    await page.locator('input[name="category"]').fill("sync");
-    await page.locator('input[name="categoryLabel"]').fill("Sync");
-    await page.locator('input[name="editionLabel"]').fill("Sync Edition");
-    await page.locator('input[name="periodLabel"]').fill("Maret 2026");
-    await page.locator('input[name="year"]').fill("2026");
-    await page.locator('input[name="author"]').fill("QA Automation");
-    await page.locator('input[name="publishedAt"]').fill(publishedAt);
-    await page.locator('select[name="status"]').selectOption("published");
     await page
       .locator('textarea[name="excerpt"]')
       .fill("Report sinkronisasi CMS.");
+    await page.locator('select[name="category"]').selectOption("editorial");
+    await page.locator('select[name="status"]').selectOption("published");
+    await page.locator('input[name="featured"]').check();
     await page
-      .locator('input[name="coverImageSrc"]')
-      .fill("/assets/figma/report-detail-hero.png");
-    await page.locator('textarea[name="relatedSlugs"]').fill("");
+      .locator('input[name="coverImageFile"]')
+      .setInputFiles(
+        path.resolve("public/assets/figma/report-detail-hero.png"),
+      );
     await page.locator('[contenteditable="true"]').click();
     await page.keyboard.type("Report sinkronisasi CMS.");
 
-    await Promise.all([
-      page.waitForLoadState("networkidle"),
-      page.getByRole("button", { name: "Buat Laporan" }).click(),
-    ]);
+    await page.getByRole("button", { name: "Simpan Laporan" }).click();
     createdReport = true;
 
-    await page.goto("/dashboard/content");
-    const reportsSectionForFeature = getSection(page, "Reports Page");
-    await reportsSectionForFeature
-      .locator('input[name="featuredReportSlug"]')
-      .fill(reportSlug);
-    await saveSection(reportsSectionForFeature);
+    await expect(page).toHaveURL(/\/dashboard\/reports\?report=cms-report-/);
+    await expect(
+      page.locator(`a[href="/dashboard/reports/preview/${reportSlug}"]`),
+    ).toBeVisible();
+
+    await page.goto(`/dashboard/reports/preview/${reportSlug}`);
+    await expect(page.getByText("Report sinkronisasi CMS.")).toBeVisible();
 
     await page.goto("/reports");
     const reportLink = page
@@ -209,10 +186,8 @@ test("CMS-owned content stays in sync with dashboard and public site", async ({
     await headerLogoCard
       .locator('input[name="assetFile"]')
       .setInputFiles(path.resolve("public/assets/figma/hmpg-logo-mark.png"));
-    await Promise.all([
-      page.waitForLoadState("networkidle"),
-      headerLogoCard.getByRole("button", { name: "Upload Asset" }).click(),
-    ]);
+    await headerLogoCard.getByRole("button", { name: "Ganti asset" }).click();
+    await expect(page).toHaveURL(/\/dashboard\/assets\?message=/);
 
     await page.goto("/");
     const headerLogoAfter = await page
@@ -220,51 +195,46 @@ test("CMS-owned content stays in sync with dashboard and public site", async ({
       .getAttribute("src");
     expect(headerLogoAfter).toBeTruthy();
   } finally {
+    if (page.isClosed()) {
+      return;
+    }
+
     await loginAsAdmin(page);
 
-    await page.goto("/dashboard/content");
-    const cleanupGlobalSection = getSection(page, "Global Settings");
-    await cleanupGlobalSection
-      .locator('input[name="shortName"]')
-      .fill(initialShortName);
-    await saveSection(cleanupGlobalSection);
+    await gotoContentSection(page, "settings");
+    await page.locator('input[name="shortName"]').fill(initialShortName);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const cleanupHomeSection = getSection(page, "Home Page");
-    await cleanupHomeSection
+    await gotoContentSection(page, "home");
+    await page
       .locator('input[name="reportsSectionTitle"]')
       .fill(initialReportsTitle);
-    await saveSection(cleanupHomeSection);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const cleanupAboutSection = getSection(page, "About Page");
-    await cleanupAboutSection
+    await gotoContentSection(page, "about");
+    await page
       .locator('input[name="valuesSectionPeriodLabel"]')
       .fill(initialPeriodLabel);
-    await saveSection(cleanupAboutSection);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const cleanupReportsSection = getSection(page, "Reports Page");
-    await cleanupReportsSection
+    await gotoContentSection(page, "reports");
+    await page
       .locator('input[name="latestSectionTitle"]')
       .fill(initialLatestTitle);
-    await cleanupReportsSection
-      .locator('input[name="featuredReportSlug"]')
-      .fill(initialFeaturedSlug);
-    await saveSection(cleanupReportsSection);
+    await saveCurrentContentPage(page);
 
-    await page.goto("/dashboard/content");
-    const cleanupContactSection = getSection(page, "Contact Page");
-    await cleanupContactSection
+    await gotoContentSection(page, "contact");
+    await page
       .locator('input[name="socialSectionTitle"]')
       .fill(initialSocialTitle);
-    await saveSection(cleanupContactSection);
+    await saveCurrentContentPage(page);
 
     if (createdReport) {
       await deleteReportIfExists(page, reportSlug);
     }
 
     if (initialHeaderLogoSrc.startsWith("/assets/")) {
+      await page.goto("/dashboard/assets");
       const headerLogoCard = page
         .locator("form")
         .filter({
@@ -272,16 +242,13 @@ test("CMS-owned content stays in sync with dashboard and public site", async ({
         })
         .first();
 
-      await page.goto("/dashboard/assets");
       await headerLogoCard
         .locator('input[name="assetFile"]')
         .setInputFiles(
           path.resolve("public", initialHeaderLogoSrc.replace(/^\//, "")),
         );
-      await Promise.all([
-        page.waitForLoadState("networkidle"),
-        headerLogoCard.getByRole("button", { name: "Upload Asset" }).click(),
-      ]);
+      await headerLogoCard.getByRole("button", { name: "Ganti asset" }).click();
+      await expect(page).toHaveURL(/\/dashboard\/assets\?message=/);
     }
   }
 });

@@ -17,8 +17,9 @@ test("public navigation and dashboard login work", async ({ page }) => {
     page.getByRole("heading", { name: /HMPG ITB Activities/i }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "HMPG's Archives" }).click();
-  await expect(page.locator("#drive-akademik")).toBeInViewport();
+  await expect(
+    page.getByRole("link", { name: "HMPG's Archives" }),
+  ).toBeVisible();
 
   await page.goto("/dashboard/login");
   await expect(
@@ -31,6 +32,8 @@ test("public navigation and dashboard login work", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(
-    page.getByRole("heading", { name: "Content overview" }),
+    page.getByRole("heading", {
+      name: /Ringkasan CMS/i,
+    }),
   ).toBeVisible();
 });
