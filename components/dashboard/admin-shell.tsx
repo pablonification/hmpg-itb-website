@@ -49,7 +49,9 @@ export function AdminShell({
           </div>
         </aside>
 
-        <main className="flex-1 space-y-6">{children}</main>
+        <main className="flex-1 space-y-6" data-auto-reveal>
+          {children}
+        </main>
       </div>
     </div>
   );

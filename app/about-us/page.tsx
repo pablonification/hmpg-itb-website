@@ -42,7 +42,7 @@ export default async function AboutPage() {
     <div className="min-h-screen overflow-x-clip bg-[#fff8f0]">
       <SiteHeader activeHref={"/about-us" as Route} settings={store.settings} />
 
-      <main>
+      <main data-auto-reveal>
         <section className="relative h-[409px] overflow-hidden bg-[#712224]">
           <div className="absolute inset-0 overflow-hidden">
             <img
@@ -55,7 +55,10 @@ export default async function AboutPage() {
 
           <div className="relative mx-auto flex h-full w-full max-w-[1280px] items-center px-6 sm:px-8 lg:px-12">
             <div className="max-w-[744px] text-white">
-              <h1 className="font-epilogue w-full max-w-[505px] text-[3.5rem] leading-[0.95] font-extrabold md:text-[72px] md:leading-[96px]">
+              <h1
+                className="font-epilogue w-full max-w-[505px] text-[3.5rem] leading-[0.95] font-extrabold md:text-[72px] md:leading-[96px]"
+                data-reveal="hero"
+              >
                 {about.heroTitle}
               </h1>
             </div>
@@ -64,7 +67,10 @@ export default async function AboutPage() {
 
         <section className="bg-[#fff8f0] px-6 py-[90px] sm:px-8 lg:px-12">
           <div className="mx-auto grid max-w-[1232px] gap-10 lg:grid-cols-[456px_664px] lg:gap-16">
-            <div className="relative overflow-hidden bg-[#fcf3e0]">
+            <div
+              className="relative overflow-hidden bg-[#fcf3e0]"
+              data-reveal="card"
+            >
               <div className="relative h-full min-h-[595px] w-full">
                 <img
                   alt={about.historyTitle}
@@ -102,14 +108,17 @@ export default async function AboutPage() {
             </div>
 
             <div className="mt-14 grid gap-6 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
-              <article className="relative overflow-hidden bg-[#831618] px-8 py-10 text-white lg:col-span-3 lg:px-12 lg:py-12">
+              <article
+                className="relative overflow-hidden bg-[#831618] px-8 py-10 text-white lg:col-span-3 lg:px-12 lg:py-12"
+                data-reveal="card"
+              >
                 <img
                   alt=""
                   aria-hidden="true"
                   className="absolute top-[-10px] right-3 h-[112px] w-[112px] object-contain sm:top-[-18px] sm:right-4 sm:h-[144px] sm:w-[144px] md:top-[-24px] md:right-5 md:h-[168px] md:w-[168px] lg:top-[-32px] lg:right-7 lg:h-[180px] lg:w-[180px]"
                   src="/assets/figma/about-vision-badge.png"
                 />
-                <div className="max-w-[48rem]">
+                <div className="max-w-[48rem]" data-reveal-ignore>
                   <p className="font-manrope text-[12px] font-bold tracking-[0.3em] text-[#ffc3bd] uppercase">
                     Visi
                   </p>
@@ -119,26 +128,37 @@ export default async function AboutPage() {
                 </div>
               </article>
 
-              <article className="border-l-4 border-[#831618] bg-[#f0e7d5] px-8 py-10 lg:col-span-3">
-                <p className="font-manrope text-[12px] font-bold tracking-[0.1em] text-[#831618] uppercase">
-                  Misi
-                </p>
-                <div className="mt-8 space-y-3">
-                  {about.missions.map((mission, index) => (
-                    <div className="flex items-start gap-4" key={mission}>
-                      <span className="font-epilogue mt-[3px] w-6 shrink-0 text-[16px] leading-6 font-bold whitespace-nowrap text-[#831618]">
-                        {String(index + 1).padStart(2, "0")}.
-                      </span>
-                      <p className="font-manrope text-[16px] leading-6 text-[#1f1b10]">
-                        {mission}
-                      </p>
-                    </div>
-                  ))}
+              <article
+                className="border-l-4 border-[#831618] bg-[#f0e7d5] px-8 py-10 lg:col-span-3"
+                data-reveal="card"
+              >
+                <div data-reveal-ignore>
+                  <p className="font-manrope text-[12px] font-bold tracking-[0.1em] text-[#831618] uppercase">
+                    Misi
+                  </p>
+                  <div className="mt-8 space-y-3">
+                    {about.missions.map((mission, index) => (
+                      <div className="flex items-start gap-4" key={mission}>
+                        <span className="font-epilogue mt-[3px] w-6 shrink-0 text-[16px] leading-6 font-bold whitespace-nowrap text-[#831618]">
+                          {String(index + 1).padStart(2, "0")}.
+                        </span>
+                        <p className="font-manrope text-[16px] leading-6 text-[#1f1b10]">
+                          {mission}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </article>
 
-              <article className="bg-[#fde089] px-8 py-10 lg:col-span-3 lg:px-12">
-                <div className="flex flex-col gap-6 md:flex-row md:items-center">
+              <article
+                className="bg-[#fde089] px-8 py-10 lg:col-span-3 lg:px-12"
+                data-reveal="card"
+              >
+                <div
+                  className="flex flex-col gap-6 md:flex-row md:items-center"
+                  data-reveal-ignore
+                >
                   <p className="font-manrope shrink-0 text-[12px] font-bold tracking-[0.1em] text-[#2d2b21] uppercase md:mr-12 lg:mr-16">
                     Nilai
                   </p>
@@ -179,14 +199,20 @@ export default async function AboutPage() {
               </h2>
             </div>
 
-            <div className="relative mx-auto mt-16 min-h-[435px] max-w-[896px] overflow-hidden border border-[rgba(223,191,188,0.3)] bg-[#fcf3e0] p-1">
+            <div
+              className="relative mx-auto mt-16 min-h-[435px] max-w-[896px] overflow-hidden border border-[rgba(223,191,188,0.3)] bg-[#fcf3e0] p-1"
+              data-reveal="card"
+            >
               <img
                 alt=""
                 aria-hidden="true"
                 className="pointer-events-none absolute top-[-389px] left-[-16px] h-[990px] w-[921px] max-w-none object-cover opacity-35 mix-blend-multiply"
                 src={about.identityTextureSrc}
               />
-              <div className="relative flex h-full flex-col items-center gap-10 bg-white px-8 py-12 md:flex-row md:items-center md:gap-16 md:px-10 md:py-16">
+              <div
+                className="relative flex h-full flex-col items-center gap-10 bg-white px-8 py-12 md:flex-row md:items-center md:gap-16 md:px-10 md:py-16"
+                data-reveal-ignore
+              >
                 <img
                   alt=""
                   aria-hidden="true"

@@ -42,14 +42,17 @@ export default async function DashboardPage() {
         ].map((item) => (
           <article
             className="rounded-[2rem] bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)]"
+            data-reveal="card"
             key={item.label}
           >
-            <p className="font-manrope text-brand-body text-xs font-bold tracking-[0.18em] uppercase">
-              {item.label}
-            </p>
-            <p className="font-epilogue text-brand-maroon mt-4 text-5xl font-bold">
-              {item.value}
-            </p>
+            <div data-reveal-ignore>
+              <p className="font-manrope text-brand-body text-xs font-bold tracking-[0.18em] uppercase">
+                {item.label}
+              </p>
+              <p className="font-epilogue text-brand-maroon mt-4 text-5xl font-bold">
+                {item.value}
+              </p>
+            </div>
           </article>
         ))}
       </section>

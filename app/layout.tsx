@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 
+import { TextRevealObserver } from "@/components/site/text-reveal-observer";
+
 const epilogue = Epilogue({
   subsets: ["latin"],
   variable: "--font-epilogue",
@@ -40,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className={`${epilogue.variable} ${manrope.variable} antialiased`}>
+        <TextRevealObserver />
         {children}
       </body>
     </html>

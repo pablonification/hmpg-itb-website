@@ -18,7 +18,7 @@ export default async function ContactPage() {
     <div className="editorial-shell min-h-screen">
       <SiteHeader settings={store.settings} />
 
-      <main>
+      <main data-auto-reveal>
         <section className="grid min-h-[740px] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <div className="bg-brand-maroon relative flex overflow-hidden px-6 py-20 text-white sm:px-8 md:py-24 lg:pt-32 lg:pr-12 lg:pb-24 lg:pl-[max(3rem,calc((100vw-1280px)/2+3rem))]">
             <img
@@ -32,7 +32,10 @@ export default async function ContactPage() {
               <p className="font-manrope text-xs tracking-[0.1em] text-white/70 uppercase">
                 {contact.heroEyebrow}
               </p>
-              <h1 className="font-epilogue mt-6 text-[4rem] leading-[0.92] font-extrabold tracking-[-0.04em] md:text-[5.5rem] lg:text-[6rem]">
+              <h1
+                className="font-epilogue mt-6 text-[4rem] leading-[0.92] font-extrabold tracking-[-0.04em] md:text-[5.5rem] lg:text-[6rem]"
+                data-reveal="hero"
+              >
                 {contact.heroTitle.split(" ").map((part, index) => (
                   <span className="block" key={`${part}-${index}`}>
                     {part}
@@ -61,6 +64,7 @@ export default async function ContactPage() {
                 </p>
                 <a
                   className="font-epilogue text-brand-ink mt-2 block text-[2rem] leading-[1.2] font-semibold tracking-[-0.03em] break-words md:text-[2.1rem]"
+                  data-reveal-link
                   href={`mailto:${store.settings.email}`}
                 >
                   {store.settings.email}
@@ -95,35 +99,44 @@ export default async function ContactPage() {
                 const isOdd = store.settings.socialLinks.length % 2 !== 0;
 
                 return (
-                  <a
-                    className={`bg-brand-surface group relative flex min-h-[212px] flex-col items-center justify-center overflow-hidden px-8 py-10 text-center transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(0,0,0,0.08)] ${
-                      isLast && isOdd ? "sm:col-span-2 lg:col-span-1" : ""
-                    }`}
-                    href={social.href}
+                  <div
+                    className={[
+                      "h-full",
+                      isLast && isOdd ? "sm:col-span-2 lg:col-span-1" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    data-reveal="card"
                     key={social.platform}
-                    rel="noreferrer"
-                    target="_blank"
                   >
-                    <img
-                      alt=""
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-multiply"
-                      src="/assets/figma/contact-paper-texture.png"
-                    />
-                    <div className="relative mx-auto flex h-14 w-14 items-center justify-center">
+                    <a
+                      className="bg-brand-surface group relative flex h-full min-h-[212px] flex-col items-center justify-center overflow-hidden px-8 py-10 text-center transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(0,0,0,0.08)]"
+                      data-reveal-ignore
+                      href={social.href}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
                       <img
-                        alt={social.label}
-                        className={`${iconClassName} object-contain transition duration-300 group-hover:scale-105`}
-                        src={iconSrc}
+                        alt=""
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-multiply"
+                        src="/assets/figma/contact-paper-texture.png"
                       />
-                    </div>
-                    <p className="font-epilogue text-brand-ink relative mt-7 text-lg font-bold">
-                      {social.label}
-                    </p>
-                    <p className="font-manrope text-brand-body relative mt-2 text-[12px] tracking-[-0.05em]">
-                      {social.handle}
-                    </p>
-                  </a>
+                      <div className="relative mx-auto flex h-14 w-14 items-center justify-center">
+                        <img
+                          alt={social.label}
+                          className={`${iconClassName} object-contain transition duration-300 group-hover:scale-105`}
+                          src={iconSrc}
+                        />
+                      </div>
+                      <p className="font-epilogue text-brand-ink relative mt-7 text-lg font-bold">
+                        {social.label}
+                      </p>
+                      <p className="font-manrope text-brand-body relative mt-2 text-[12px] tracking-[-0.05em]">
+                        {social.handle}
+                      </p>
+                    </a>
+                  </div>
                 );
               })}
             </div>

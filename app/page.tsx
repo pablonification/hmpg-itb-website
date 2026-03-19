@@ -22,7 +22,7 @@ export default async function HomePage() {
     <div className="min-h-screen overflow-x-clip bg-[#fff8f0]">
       <SiteHeader activeHref={"/" as Route} settings={store.settings} />
 
-      <main>
+      <main data-auto-reveal>
         <section className="relative h-[698px] overflow-hidden bg-[#e2d9c7]">
           <img
             alt={home.heroTitleLine1}
@@ -39,14 +39,20 @@ export default async function HomePage() {
                 </p>
               </div>
 
-              <div className="font-epilogue text-[56px] leading-[0.95] font-extrabold tracking-[-0.03em] text-[#1f1b10] md:text-[72px] md:leading-[72px]">
-                <h1>{home.heroTitleLine1}</h1>
-                <p className="text-[#a42f2c]">{home.heroTitleLine2}</p>
-              </div>
+              <h1
+                className="font-epilogue text-[56px] leading-[0.95] font-extrabold tracking-[-0.03em] text-[#1f1b10] md:text-[72px] md:leading-[72px]"
+                data-reveal="hero"
+              >
+                <span className="block">{home.heroTitleLine1}</span>
+                <span className="block text-[#a42f2c]">
+                  {home.heroTitleLine2}
+                </span>
+              </h1>
 
               <div className="pt-3">
                 <Link
                   className="group inline-flex items-center gap-2 rounded-[2px] bg-[#831618] px-10 pt-[16.5px] pb-[17px] text-white transition duration-300 hover:bg-[#712224]"
+                  data-reveal-link
                   href="/about-us"
                 >
                   <span className="font-manrope text-[14px] font-bold tracking-[0.05em] text-white">
@@ -115,9 +121,13 @@ export default async function HomePage() {
             </div>
 
             {featuredReport ? (
-              <article className="group relative overflow-hidden bg-[#712224] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-300 hover:bg-[#7d2928] hover:shadow-[0_18px_36px_rgba(31,27,16,0.08)]">
+              <article
+                className="group relative overflow-hidden bg-[#712224] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-300 hover:bg-[#7d2928] hover:shadow-[0_18px_36px_rgba(31,27,16,0.08)]"
+                data-reveal="card"
+              >
                 <Link
                   className="relative grid h-full md:grid-cols-2"
+                  data-reveal-ignore
                   href={`/reports/${featuredReport.slug}`}
                 >
                   <div className="pointer-events-none absolute inset-0 bg-white/0 transition duration-300 group-hover:bg-white/[0.035]" />
@@ -166,9 +176,13 @@ export default async function HomePage() {
 
             <div className="grid gap-8 lg:grid-cols-12">
               {secondaryReport ? (
-                <article className="group overflow-hidden bg-[#712224] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-300 hover:bg-[#7d2928] hover:shadow-[0_18px_36px_rgba(31,27,16,0.08)] lg:col-span-8">
+                <article
+                  className="group overflow-hidden bg-[#712224] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-300 hover:bg-[#7d2928] hover:shadow-[0_18px_36px_rgba(31,27,16,0.08)] lg:col-span-8"
+                  data-reveal="card"
+                >
                   <Link
                     className="relative block h-full"
+                    data-reveal-ignore
                     href={`/reports/${secondaryReport.slug}`}
                   >
                     <div className="pointer-events-none absolute inset-0 bg-white/0 transition duration-300 group-hover:bg-white/[0.035]" />
@@ -200,9 +214,13 @@ export default async function HomePage() {
               ) : null}
 
               {tertiaryReport ? (
-                <article className="group overflow-hidden bg-[#712224] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-300 hover:bg-[#7d2928] hover:shadow-[0_18px_36px_rgba(31,27,16,0.08)] lg:col-span-4">
+                <article
+                  className="group overflow-hidden bg-[#712224] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-300 hover:bg-[#7d2928] hover:shadow-[0_18px_36px_rgba(31,27,16,0.08)] lg:col-span-4"
+                  data-reveal="card"
+                >
                   <Link
                     className="relative block h-full"
+                    data-reveal-ignore
                     href={`/reports/${tertiaryReport.slug}`}
                   >
                     <div className="pointer-events-none absolute inset-0 bg-white/0 transition duration-300 group-hover:bg-white/[0.035]" />

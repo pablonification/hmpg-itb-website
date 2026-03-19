@@ -16,7 +16,10 @@ export default async function DashboardLoginPage({
   const error = typeof params.error === "string" ? params.error : null;
 
   return (
-    <main className="bg-brand-shell flex min-h-screen items-center justify-center px-4">
+    <main
+      className="bg-brand-shell flex min-h-screen items-center justify-center px-4"
+      data-auto-reveal
+    >
       <div className="w-full max-w-lg rounded-[2rem] bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
         <p className="font-manrope text-brand-maroon text-xs font-bold tracking-[0.24em] uppercase">
           HMPG CMS

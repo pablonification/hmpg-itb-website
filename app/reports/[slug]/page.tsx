@@ -32,7 +32,7 @@ export default async function ReportDetailPage({
     <div className="editorial-shell min-h-screen">
       <SiteHeader settings={store.settings} />
 
-      <main className="bg-brand-surface">
+      <main className="bg-brand-surface" data-auto-reveal>
         <section className="mx-auto max-w-7xl px-4 py-20 md:px-8">
           <div className="max-w-5xl space-y-6">
             <p className="font-manrope text-brand-body text-sm">
@@ -41,7 +41,10 @@ export default async function ReportDetailPage({
             <span className="bg-brand-blush text-brand-maroon inline-flex px-3 py-1 text-[0.65rem] font-bold tracking-[0.18em] uppercase">
               {report.categoryLabel}
             </span>
-            <h1 className="font-epilogue text-brand-ink max-w-4xl text-5xl leading-tight font-bold md:text-6xl">
+            <h1
+              className="font-epilogue text-brand-ink max-w-4xl text-5xl leading-tight font-bold md:text-6xl"
+              data-reveal="hero"
+            >
               {report.title}
             </h1>
             <div className="border-brand-muted/30 flex flex-wrap gap-10 border-t pt-8">
@@ -89,9 +92,10 @@ export default async function ReportDetailPage({
             </h2>
             <div className="mt-10 grid gap-8 md:grid-cols-3">
               {relatedReports.map((related) => (
-                <article key={related.id}>
+                <article data-reveal="card" key={related.id}>
                   <Link
                     className="block space-y-4"
+                    data-reveal-ignore
                     href={`/reports/${related.slug}`}
                   >
                     <img
