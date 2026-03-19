@@ -13,9 +13,11 @@ import { cn } from "@/lib/utils";
 export function RichTextEditor({
   name,
   initialValue,
+  onDirty,
 }: {
   name: string;
   initialValue: string;
+  onDirty?: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [htmlValue, setHtmlValue] = useState(initialValue);
@@ -47,6 +49,7 @@ export function RichTextEditor({
     },
     onUpdate({ editor: activeEditor }) {
       setHtmlValue(activeEditor.getHTML());
+      onDirty?.();
     },
   });
 
@@ -94,6 +97,7 @@ export function RichTextEditor({
         .setImage({ src: payload.src, alt: file.name })
         .run();
       editor?.chain().focus().createParagraphNear().run();
+      onDirty?.();
     } catch (error) {
       setUploadError(
         error instanceof Error ? error.message : "Gagal mengunggah gambar.",

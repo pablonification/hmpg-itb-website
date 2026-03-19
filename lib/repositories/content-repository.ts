@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+import { getReportCategoryLabel } from "@/lib/cms/config";
 import { seedStore } from "@/lib/data/seed";
 import type {
   ActivityHighlight,
@@ -11,7 +12,12 @@ import type {
   ReportRecord,
   SiteSettings,
 } from "@/lib/data/types";
-import { slugify } from "@/lib/utils";
+import {
+  compareReportsByPublishedAtDesc,
+  getYearFromDateString,
+  slugify,
+  uniqueBy,
+} from "@/lib/utils";
 
 function cloneStore(): CmsStore {
   return JSON.parse(JSON.stringify(seedStore)) as CmsStore;
@@ -112,6 +118,95 @@ function buildReportRecord(
 
 function getNonEmptyString(value: unknown) {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function getPublishedAtValue(
+  nextStatus: ReportRecord["status"],
+  incomingValue: string | undefined,
+  existingValue: string | undefined,
+) {
+  const normalizedIncoming = getNonEmptyString(incomingValue);
+  const normalizedExisting = getNonEmptyString(existingValue);
+
+  if (normalizedIncoming) {
+    return normalizedIncoming;
+  }
+
+  if (normalizedExisting) {
+    return normalizedExisting;
+  }
+
+  return nextStatus === "published" ? new Date().toISOString() : "";
+}
+
+function getDerivedYear(
+  publishedAt: string,
+  existingValue: string | undefined,
+) {
+  return getYearFromDateString(publishedAt) || existingValue || "";
+}
+
+function normalizeReportCategoryLabel(
+  category: string,
+  incomingValue: string | undefined,
+  existingValue: string | undefined,
+) {
+  return (
+    getNonEmptyString(incomingValue) ??
+    getReportCategoryLabel(category) ??
+    existingValue ??
+    "Editorial"
+  );
+}
+
+export function applyFeaturedState(
+  reports: ReportRecord[],
+  nextReport: ReportRecord,
+) {
+  return reports.map((entry) => {
+    if (entry.id === nextReport.id) {
+      return nextReport;
+    }
+
+    if (!nextReport.featured || entry.id === nextReport.id) {
+      return entry;
+    }
+
+    return {
+      ...entry,
+      featured: false,
+    };
+  });
+}
+
+export function deriveReportSaveState(
+  input: Partial<ReportRecord> & Pick<ReportRecord, "title">,
+  existing?: ReportRecord,
+) {
+  const nextStatus = input.status ?? existing?.status ?? "draft";
+  const publishedAt = getPublishedAtValue(
+    nextStatus,
+    input.publishedAt,
+    existing?.publishedAt,
+  );
+  const category =
+    getNonEmptyString(input.category) ?? existing?.category ?? "editorial";
+
+  return {
+    status: nextStatus,
+    category,
+    categoryLabel: normalizeReportCategoryLabel(
+      category,
+      input.categoryLabel,
+      existing?.categoryLabel,
+    ),
+    slug: slugify(
+      getNonEmptyString(input.slug) ?? existing?.slug ?? input.title,
+    ),
+    publishedAt,
+    year: getDerivedYear(publishedAt, existing?.year),
+    featured: nextStatus === "published" && Boolean(input.featured),
+  };
 }
 
 function hasSupabaseConfig() {
@@ -281,32 +376,68 @@ export function filterReports(reports: ReportRecord[], filters: ReportFilters) {
 
 export async function getReportBySlug(slug: string) {
   const store = await getStore();
+  return (
+    store.reports.find(
+      (report) => report.slug === slug && report.status === "published",
+    ) ?? null
+  );
+}
+
+export async function getDashboardReportBySlug(slug: string) {
+  const store = await getStore();
   return store.reports.find((report) => report.slug === slug) ?? null;
 }
 
-export async function getRelatedReports(slug: string) {
-  const store = await getStore();
-  const report = store.reports.find((entry) => entry.slug === slug);
+export function resolveFeaturedReport(reports: ReportRecord[]) {
+  const publishedReports = reports
+    .filter((report) => report.status === "published")
+    .sort(compareReportsByPublishedAtDesc);
+
+  return (
+    publishedReports.find((report) => report.featured) ??
+    publishedReports[0] ??
+    null
+  );
+}
+
+export function getAutoRelatedReportsFromReports(
+  reports: ReportRecord[],
+  slug: string,
+) {
+  const report = reports.find(
+    (entry) => entry.slug === slug && entry.status === "published",
+  );
 
   if (!report) {
     return [];
   }
 
-  const manual = report.relatedSlugs
-    .map((relatedSlug) =>
-      store.reports.find((entry) => entry.slug === relatedSlug),
+  const sameCategory = reports
+    .filter(
+      (entry) =>
+        entry.slug !== slug &&
+        entry.status === "published" &&
+        entry.category === report.category,
     )
-    .filter((entry): entry is ReportRecord => Boolean(entry));
+    .sort(compareReportsByPublishedAtDesc);
+  const fallback = reports
+    .filter(
+      (entry) =>
+        entry.slug !== slug &&
+        entry.status === "published" &&
+        entry.category !== report.category,
+    )
+    .sort(compareReportsByPublishedAtDesc);
 
-  if (manual.length >= 3) {
-    return manual.slice(0, 3);
-  }
-
-  const fallback = store.reports.filter(
-    (entry) => entry.slug !== slug && entry.category === report.category,
+  return uniqueBy([...sameCategory, ...fallback], (entry) => entry.id).slice(
+    0,
+    3,
   );
+}
 
-  return [...manual, ...fallback].slice(0, 3);
+export async function getRelatedReports(slug: string) {
+  const store = await getStore();
+  return getAutoRelatedReportsFromReports(store.reports, slug);
 }
 
 export async function saveSettings(nextSettings: SiteSettings) {
@@ -423,31 +554,20 @@ export async function saveReport(
   const existing = input.id
     ? store.reports.find((report) => report.id === input.id)
     : undefined;
-  const slugSource = getNonEmptyString(input.slug) ?? input.title;
-  const slug = slugify(slugSource);
+  const nextState = deriveReportSaveState(input, existing);
 
   const report = buildReportRecord(
     {
       id: existing?.id ?? `report-${Date.now()}`,
-      slug,
+      slug: nextState.slug,
       title: input.title,
       excerpt: input.excerpt ?? existing?.excerpt ?? "",
-      category:
-        getNonEmptyString(input.category) ?? existing?.category ?? "editorial",
-      categoryLabel:
-        getNonEmptyString(input.categoryLabel) ??
-        existing?.categoryLabel ??
-        "Editorial",
+      category: nextState.category,
+      categoryLabel: nextState.categoryLabel,
       coverImageSrc:
         getNonEmptyString(input.coverImageSrc) ?? existing?.coverImageSrc ?? "",
-      publishedAt:
-        getNonEmptyString(input.publishedAt) ??
-        existing?.publishedAt ??
-        new Date().toISOString(),
-      year:
-        getNonEmptyString(input.year) ??
-        existing?.year ??
-        new Date().getFullYear().toString(),
+      publishedAt: nextState.publishedAt,
+      year: nextState.year,
       periodLabel:
         getNonEmptyString(input.periodLabel) ??
         existing?.periodLabel ??
@@ -457,13 +577,13 @@ export async function saveReport(
         existing?.editionLabel ??
         "HMPG Report",
       author: getNonEmptyString(input.author) ?? existing?.author ?? "HMPG ITB",
-      status: input.status ?? existing?.status ?? "draft",
-      featured: input.featured ?? existing?.featured ?? false,
+      status: nextState.status,
+      featured: nextState.featured,
       bodyHtml:
         input.bodyHtml ??
         existing?.bodyHtml ??
         "<section><h2>Draft</h2><p>Isi laporan.</p></section>",
-      relatedSlugs: input.relatedSlugs ?? existing?.relatedSlugs ?? [],
+      relatedSlugs: existing?.relatedSlugs ?? [],
     },
     {
       summaryLabel:
@@ -472,12 +592,17 @@ export async function saveReport(
   );
 
   if (isDemoMode()) {
-    demoStore = {
-      ...demoStore,
-      reports: [
+    const nextReports = applyFeaturedState(
+      [
         ...demoStore.reports.filter((entry) => entry.id !== report.id),
         report,
-      ],
+      ].sort(compareReportsByPublishedAtDesc),
+      report,
+    );
+
+    demoStore = {
+      ...demoStore,
+      reports: nextReports,
     };
 
     return report;
@@ -513,6 +638,18 @@ export async function saveReport(
 
   if (result.error) {
     throw result.error;
+  }
+
+  if (report.featured) {
+    const clearResult = await supabase
+      .from("reports")
+      .update({ featured: false })
+      .neq("id", report.id)
+      .eq("featured", true);
+
+    if (clearResult.error) {
+      throw clearResult.error;
+    }
   }
 
   return fromSupabaseReportRow(result.data);

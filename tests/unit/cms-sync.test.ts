@@ -124,19 +124,15 @@ describe("CMS sync guardrails", () => {
 
     formData.set("id", existingReport.id);
     formData.set("title", "CMS Sync Report");
-    formData.set("slug", "cms-sync-report");
     formData.set("excerpt", "Updated excerpt");
-    formData.set("category", "sync");
-    formData.set("categoryLabel", "Sync");
+    formData.set("category", "editorial");
     formData.set("editionLabel", "Edition Sync");
     formData.set("periodLabel", "March 2026");
-    formData.set("year", "2026");
     formData.set("author", "QA");
     formData.set("publishedAt", "2026-03-19T00:00:00.000Z");
     formData.set("status", "published");
     formData.set("featured", "on");
     formData.set("coverImageSrc", "/assets/figma/report-detail-hero.png");
-    formData.set("relatedSlugs", "alpha\nbeta");
     formData.set(
       "bodyHtml",
       '<section><p>Sync body</p><img alt="Inline" src="/assets/figma/reports-card-keuangan.png" /></section>',
@@ -151,7 +147,8 @@ describe("CMS sync guardrails", () => {
     expect(nextReport.coverImageSrc).toBe(
       "/assets/figma/report-detail-hero.png",
     );
-    expect(nextReport.relatedSlugs).toEqual(["alpha", "beta"]);
+    expect(nextReport.relatedSlugs).toEqual(existingReport.relatedSlugs);
+    expect(nextReport.slug).toBe(existingReport.slug);
     expect(nextReport.featured).toBe(true);
   });
 });

@@ -38,6 +38,16 @@ function redirectToUsers(params: string) {
   redirect(`/dashboard/users${params}` as never);
 }
 
+function redirectToContent(section: string, message: string) {
+  redirect(
+    `/dashboard/content?section=${section}&message=${encodeURIComponent(message)}` as never,
+  );
+}
+
+function redirectToAssets(message: string) {
+  redirect(`/dashboard/assets?message=${encodeURIComponent(message)}` as never);
+}
+
 export async function saveSettingsAction(formData: FormData) {
   await requireAdminSession();
   const store = await getStore();
@@ -46,6 +56,7 @@ export async function saveSettingsAction(formData: FormData) {
   await saveSettings(nextSettings);
   revalidatePath("/", "layout");
   revalidatePath("/contact-us");
+  redirectToContent("settings", "Pengaturan berhasil disimpan.");
 }
 
 export async function saveHomeContentAction(formData: FormData) {
@@ -55,6 +66,7 @@ export async function saveHomeContentAction(formData: FormData) {
 
   await savePageContent("home", nextHome);
   revalidatePath("/");
+  redirectToContent("home", "Konten halaman berhasil disimpan.");
 }
 
 export async function saveActivitiesAction(formData: FormData) {
@@ -96,6 +108,7 @@ export async function saveAboutContentAction(formData: FormData) {
 
   await savePageContent("about", nextAbout);
   revalidatePath("/about-us");
+  redirectToContent("about", "Konten halaman berhasil disimpan.");
 }
 
 export async function saveReportsContentAction(formData: FormData) {
@@ -110,6 +123,7 @@ export async function saveReportsContentAction(formData: FormData) {
   await savePageContent("reports", nextReports);
   revalidatePath("/reports");
   revalidatePath("/");
+  redirectToContent("reports", "Konten halaman berhasil disimpan.");
 }
 
 export async function saveContactContentAction(formData: FormData) {
@@ -123,11 +137,13 @@ export async function saveContactContentAction(formData: FormData) {
 
   await savePageContent("contact", nextContact);
   revalidatePath("/contact-us");
+  redirectToContent("contact", "Konten halaman berhasil disimpan.");
 }
 
 export async function saveReportAction(formData: FormData) {
-  await requireReportsSession();
+  const session = await requireReportsSession();
   const store = await getStore();
+  const returnQuery = String(formData.get("returnQuery") ?? "").trim();
   const reportId = String(formData.get("id") ?? "").trim();
   const currentReport = reportId
     ? store.reports.find((report) => report.id === reportId)
@@ -140,9 +156,14 @@ export async function saveReportAction(formData: FormData) {
   }
 
   const nextReport = buildReportInputFromForm(formData, currentReport);
+  const nextSlug = nextReport.slug || currentReport?.slug;
 
-  await saveReport({
+  const savedReport = await saveReport({
     ...nextReport,
+    ...(session.role === "admin" && nextSlug ? { slug: nextSlug } : {}),
+    ...(session.role === "admin"
+      ? { publishedAt: nextReport.publishedAt }
+      : {}),
     coverImageSrc,
     bodyHtml: DOMPurify.sanitize(nextReport.bodyHtml),
   });
@@ -150,19 +171,38 @@ export async function saveReportAction(formData: FormData) {
   revalidatePath("/dashboard/reports");
   revalidatePath("/reports");
   revalidatePath("/");
-  if (nextReport.slug) {
-    revalidatePath(`/reports/${nextReport.slug}`);
+  revalidatePath(`/reports/${savedReport.slug}`);
+  revalidatePath(`/dashboard/reports/preview/${savedReport.slug}`);
+  const searchParams = new URLSearchParams({
+    report: savedReport.slug,
+    message: "Laporan berhasil disimpan.",
+  });
+
+  if (returnQuery) {
+    searchParams.set("query", returnQuery);
   }
+
+  redirect(`/dashboard/reports?${searchParams.toString()}`);
 }
 
 export async function deleteReportAction(formData: FormData) {
   await requireReportsSession();
+  const returnQuery = String(formData.get("returnQuery") ?? "").trim();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
   await deleteReport(id);
   revalidatePath("/dashboard/reports");
   revalidatePath("/reports");
+  const searchParams = new URLSearchParams({
+    message: "Laporan berhasil dihapus.",
+  });
+
+  if (returnQuery) {
+    searchParams.set("query", returnQuery);
+  }
+
+  redirect(`/dashboard/reports?${searchParams.toString()}`);
 }
 
 export async function uploadCmsAssetAction(formData: FormData) {
@@ -193,7 +233,7 @@ export async function uploadCmsAssetAction(formData: FormData) {
     revalidatePath("/", "layout");
     revalidatePath("/contact-us");
     revalidatePath("/dashboard/assets");
-    return;
+    redirectToAssets("Asset berhasil diperbarui.");
   }
 
   if (targetType === "page") {
@@ -235,7 +275,7 @@ export async function uploadCmsAssetAction(formData: FormData) {
       revalidatePath("/");
     }
     revalidatePath("/dashboard/assets");
-    return;
+    redirectToAssets("Asset berhasil diperbarui.");
   }
 }
 

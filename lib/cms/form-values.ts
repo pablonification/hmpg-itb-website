@@ -145,47 +145,56 @@ export function buildReportInputFromForm(
   formData: FormData,
   currentValue?: ReportRecord,
 ) {
-  const baseValue = applyFieldSections(reportEditorSections, formData, {
-    id: currentValue?.id ?? "",
-    slug: currentValue?.slug ?? "",
-    title: currentValue?.title ?? "",
-    excerpt: currentValue?.excerpt ?? "",
-    category: currentValue?.category ?? "",
-    categoryLabel: currentValue?.categoryLabel ?? "",
-    coverImageSrc: currentValue?.coverImageSrc ?? "",
-    publishedAt: currentValue?.publishedAt ?? "",
-    year: currentValue?.year ?? "",
-    periodLabel: currentValue?.periodLabel ?? "",
-    editionLabel: currentValue?.editionLabel ?? "",
-    author: currentValue?.author ?? "",
-    status: currentValue?.status ?? "draft",
-    featured: currentValue?.featured ?? false,
-    summaryLabel: currentValue?.summaryLabel ?? "",
-    bodyHtml: currentValue?.bodyHtml ?? "",
-    relatedSlugs: currentValue?.relatedSlugs ?? [],
-  } satisfies ReportRecord);
-
   const id = String(formData.get("id") ?? "").trim();
+  const hasFeaturedField = formData.has("featured");
+  const hasStatusField = formData.has("status");
 
   return {
     ...(id ? { id } : {}),
-    title: String(baseValue.title),
-    slug: String(baseValue.slug),
-    excerpt: String(baseValue.excerpt),
-    category: String(baseValue.category),
-    categoryLabel: String(baseValue.categoryLabel),
-    coverImageSrc: String(baseValue.coverImageSrc),
-    publishedAt: String(baseValue.publishedAt),
-    year: String(baseValue.year),
-    periodLabel: String(baseValue.periodLabel),
-    editionLabel: String(baseValue.editionLabel),
-    author: String(baseValue.author),
-    status: baseValue.status as ReportRecord["status"],
-    featured: Boolean(baseValue.featured),
-    relatedSlugs: Array.isArray(baseValue.relatedSlugs)
-      ? baseValue.relatedSlugs.map((slug) => String(slug))
-      : [],
-    bodyHtml: String(baseValue.bodyHtml),
+    title: readText(formData, "title", currentValue?.title ?? ""),
+    slug: readText(formData, "slug", currentValue?.slug ?? ""),
+    excerpt: readText(formData, "excerpt", currentValue?.excerpt ?? "", true),
+    category: readText(formData, "category", currentValue?.category ?? ""),
+    categoryLabel: readText(
+      formData,
+      "categoryLabel",
+      currentValue?.categoryLabel ?? "",
+    ),
+    coverImageSrc: readText(
+      formData,
+      "coverImageSrc",
+      currentValue?.coverImageSrc ?? "",
+    ),
+    publishedAt: readText(
+      formData,
+      "publishedAt",
+      currentValue?.publishedAt ?? "",
+    ),
+    year: currentValue?.year ?? "",
+    periodLabel: readText(
+      formData,
+      "periodLabel",
+      currentValue?.periodLabel ?? "",
+    ),
+    editionLabel: readText(
+      formData,
+      "editionLabel",
+      currentValue?.editionLabel ?? "",
+    ),
+    author: readText(formData, "author", currentValue?.author ?? ""),
+    status: (hasStatusField
+      ? String(formData.get("status") ?? "draft")
+      : (currentValue?.status ?? "draft")) as ReportRecord["status"],
+    featured: hasFeaturedField
+      ? formData.get("featured") === "on"
+      : (currentValue?.featured ?? false),
+    relatedSlugs: currentValue?.relatedSlugs ?? [],
+    bodyHtml: readText(
+      formData,
+      "bodyHtml",
+      currentValue?.bodyHtml ?? "",
+      true,
+    ),
   };
 }
 

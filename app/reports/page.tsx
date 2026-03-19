@@ -4,7 +4,11 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import type { ReportRecord, ReportStatus } from "@/lib/data/types";
-import { filterReports, getStore } from "@/lib/repositories/content-repository";
+import {
+  filterReports,
+  getStore,
+  resolveFeaturedReport,
+} from "@/lib/repositories/content-repository";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { formatDisplayDate, getReportPreviewImage } from "@/lib/utils";
@@ -51,9 +55,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   );
 
   const featuredReport =
-    publishedReports.find(
-      (report) => report.slug === reportsPage.featuredReportSlug,
-    ) ?? filteredReports[0];
+    resolveFeaturedReport(publishedReports) ?? filteredReports[0];
   const latestReports = filteredReports.filter(
     (report) => report.slug !== featuredReport?.slug,
   );

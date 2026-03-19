@@ -54,3 +54,23 @@ export function getReportPreviewImage(
 ) {
   return report.coverImageSrc || extractFirstImageSrcFromHtml(report.bodyHtml);
 }
+
+export function getYearFromDateString(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return String(date.getFullYear());
+}
+
+export function compareReportsByPublishedAtDesc(
+  left: Pick<ReportRecord, "publishedAt">,
+  right: Pick<ReportRecord, "publishedAt">,
+) {
+  return (
+    new Date(right.publishedAt || 0).getTime() -
+    new Date(left.publishedAt || 0).getTime()
+  );
+}
