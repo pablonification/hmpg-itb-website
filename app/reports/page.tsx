@@ -207,24 +207,24 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                   data-reveal-ignore
                   href={`/reports/${featuredReport.slug}`}
                 >
-                  <section className="grid min-h-[42rem] lg:grid-cols-[1.5fr_1fr]">
-                    <div className="relative overflow-hidden">
+                  <section className="grid overflow-hidden lg:min-h-[40rem] lg:grid-cols-[1.35fr_minmax(22rem,1fr)]">
+                    <div className="relative aspect-[4/3] overflow-hidden lg:aspect-auto lg:h-full lg:min-h-[40rem]">
                       <span className="bg-brand-maroon font-manrope absolute top-6 left-6 z-10 px-4 py-1 text-[10px] font-bold tracking-[0.1em] text-white uppercase">
-                        Terbaru
+                        Featured
                       </span>
                       {getReportPreviewImage(featuredReport) ? (
                         <img
                           alt={featuredReport.title}
-                          className="h-full min-h-[30rem] w-full object-cover"
+                          className="h-full w-full object-cover object-center"
                           src={getReportPreviewImage(featuredReport)}
                         />
                       ) : (
-                        <div className="from-brand-shell to-brand-blush h-full min-h-[30rem] w-full bg-gradient-to-br" />
+                        <div className="from-brand-shell to-brand-blush h-full w-full bg-gradient-to-br" />
                       )}
                       <div className="absolute inset-0 bg-[#712224]/0 transition duration-300 group-hover:bg-[#712224]/8" />
                     </div>
 
-                    <div className="flex flex-col p-8 transition-colors duration-300 md:p-12">
+                    <div className="flex flex-col p-8 transition-colors duration-300 md:p-10 lg:p-12">
                       <p className="font-manrope text-brand-maroon text-xs font-bold tracking-[0.05em] uppercase">
                         {featuredReport.categoryLabel}
                       </p>

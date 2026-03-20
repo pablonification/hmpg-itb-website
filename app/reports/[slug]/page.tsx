@@ -29,44 +29,77 @@ export default async function ReportDetailPage({
   const relatedReports = await getRelatedReports(slug);
   const publishedLabel =
     formatDisplayDate(report.publishedAt) || "Belum terbit";
+  const coverImage = getReportPreviewImage(report);
 
   return (
     <div className="editorial-shell min-h-screen">
       <SiteHeader settings={store.settings} />
 
-      <main className="bg-brand-surface" data-auto-reveal>
-        <section className="mx-auto max-w-7xl px-4 py-20 md:px-8">
-          <div className="max-w-5xl space-y-6">
-            <p className="font-manrope text-brand-body text-sm">
-              Home &gt; Reports &gt; Detail
-            </p>
-            <span className="bg-brand-blush text-brand-maroon inline-flex px-3 py-1 text-[0.65rem] font-bold tracking-[0.18em] uppercase">
-              {report.categoryLabel}
-            </span>
-            <h1
-              className="font-epilogue text-brand-ink max-w-4xl text-5xl leading-tight font-bold md:text-6xl"
-              data-reveal="hero"
-            >
-              {report.title}
-            </h1>
-            <div className="border-brand-muted/30 flex flex-wrap gap-10 border-t pt-8">
-              <div>
-                <p className="font-manrope text-brand-body text-[0.65rem] font-bold tracking-[0.18em] uppercase">
-                  Tanggal Terbit
-                </p>
-                <p className="font-manrope text-brand-ink mt-2 text-base font-bold">
-                  {publishedLabel}
-                </p>
-              </div>
-              <div>
-                <p className="font-manrope text-brand-body text-[0.65rem] font-bold tracking-[0.18em] uppercase">
-                  Penulis
-                </p>
-                <p className="font-manrope text-brand-ink mt-2 text-base font-bold">
-                  {report.author}
-                </p>
+      <main className="bg-brand-surface">
+        <section className="mx-auto max-w-5xl px-4 py-20 md:px-8">
+          <div className="space-y-8">
+            <nav aria-label="Breadcrumb" className="font-manrope text-sm">
+              <ol className="text-brand-body flex flex-wrap items-center gap-2">
+                <li>
+                  <Link
+                    className="hover:text-brand-ink transition-colors"
+                    href="/"
+                  >
+                    Home
+                  </Link>
+                </li>
+                <li aria-hidden="true">&gt;</li>
+                <li>
+                  <Link
+                    className="hover:text-brand-ink transition-colors"
+                    href="/reports"
+                  >
+                    Reports
+                  </Link>
+                </li>
+                <li aria-hidden="true">&gt;</li>
+                <li aria-current="page" className="text-brand-ink">
+                  Detail
+                </li>
+              </ol>
+            </nav>
+
+            <div className="space-y-6">
+              <span className="bg-brand-blush text-brand-maroon inline-flex px-3 py-1 text-[0.65rem] font-bold tracking-[0.18em] uppercase">
+                {report.categoryLabel}
+              </span>
+              <h1 className="font-epilogue text-brand-ink max-w-4xl text-5xl leading-tight font-bold md:text-6xl">
+                {report.title}
+              </h1>
+              <div className="border-brand-muted/30 flex flex-wrap gap-10 border-t pt-8">
+                <div>
+                  <p className="font-manrope text-brand-body text-[0.65rem] font-bold tracking-[0.18em] uppercase">
+                    Tanggal Terbit
+                  </p>
+                  <p className="font-manrope text-brand-ink mt-2 text-base font-bold">
+                    {publishedLabel}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-manrope text-brand-body text-[0.65rem] font-bold tracking-[0.18em] uppercase">
+                    Penulis
+                  </p>
+                  <p className="font-manrope text-brand-ink mt-2 text-base font-bold">
+                    {report.author}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {coverImage && (
+              <div className="shadow-brand-maroon/10 overflow-hidden rounded-[2.5rem] shadow-2xl">
+                <img
+                  alt={report.title}
+                  className="aspect-[16/9] w-full object-cover"
+                  src={coverImage}
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -81,10 +114,9 @@ export default async function ReportDetailPage({
             </h2>
             <div className="mt-10 grid gap-8 md:grid-cols-3">
               {relatedReports.map((related) => (
-                <article data-reveal="card" key={related.id}>
+                <article key={related.id}>
                   <Link
                     className="block space-y-4"
-                    data-reveal-ignore
                     href={`/reports/${related.slug}`}
                   >
                     {getReportPreviewImage(related) ? (
