@@ -136,7 +136,7 @@ export default async function ReportDetailPage({
           </div>
         </section>
 
-        <section className="mx-auto max-w-5xl px-4 pb-24 md:px-8">
+        <section className="mx-auto max-w-5xl translate-y-[-84px] px-4 pb-24 md:px-8">
           <RichText html={report.bodyHtml} />
         </section>
 

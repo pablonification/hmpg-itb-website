@@ -58,7 +58,7 @@ export default async function HomePage() {
           <div className="relative mx-auto flex h-full max-w-[1280px] items-center px-6 sm:px-8 lg:px-12">
             <div className="w-full max-w-[768px] space-y-4">
               <div className="inline-flex bg-[rgba(255,218,214,0.3)] px-3 py-1">
-                <p className="font-manrope text-[12px] font-bold tracking-[0.2em] text-[#831618] uppercase">
+                <p className="font-manrope text-[15px] font-bold tracking-[0.2em] text-[#831618] uppercase">
                   {home.heroEyebrow}
                 </p>
               </div>
