@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -9,10 +10,42 @@ import {
   getReportBySlug,
   getStore,
 } from "@/lib/repositories/content-repository";
+import { buildPageMetadata } from "@/lib/seo";
 import { formatDisplayDate, getReportPreviewImage } from "@/lib/utils";
 
 interface ReportDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ReportDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const report = await getReportBySlug(slug);
+
+  if (!report) {
+    return buildPageMetadata({
+      title: "Laporan Tidak Ditemukan",
+      description: "Laporan yang Anda cari tidak tersedia.",
+      path: `/reports/${slug}`,
+    });
+  }
+
+  return buildPageMetadata({
+    title: report.title,
+    description: report.excerpt,
+    path: `/reports/${report.slug}`,
+    image: getReportPreviewImage(report),
+    type: "article",
+    keywords: [
+      report.categoryLabel,
+      report.year,
+      "laporan HMPG ITB",
+      report.author,
+    ].filter(Boolean),
+    ...(report.publishedAt ? { publishedTime: report.publishedAt } : {}),
+    ...(report.author ? { authors: [report.author] } : {}),
+  });
 }
 
 export default async function ReportDetailPage({

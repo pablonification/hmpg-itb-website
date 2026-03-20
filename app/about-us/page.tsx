@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import { FireIcon, TrophyIcon, UsersIcon } from "@heroicons/react/24/solid";
 import type { Route } from "next";
 
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getStore } from "@/lib/repositories/content-repository";
+import { buildPageMetadata } from "@/lib/seo";
 
 const valueIcons = [UsersIcon, TrophyIcon, FireIcon] as const;
 
@@ -33,6 +35,26 @@ const colorSwatches = [
     bordered: false,
   },
 ] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await getStore();
+  const about = store.pages.about;
+
+  return buildPageMetadata({
+    title: "About Us",
+    description:
+      about.historyParagraphs[0] ||
+      "Pelajari sejarah, visi, misi, dan identitas visual HMPG ITB.",
+    path: "/about-us",
+    image: about.heroImageSrc,
+    keywords: [
+      "About HMPG ITB",
+      "sejarah HMPG ITB",
+      "visi misi HMPG ITB",
+      "identitas visual HMPG ITB",
+    ],
+  });
+}
 
 export default async function AboutPage() {
   const store = await getStore();

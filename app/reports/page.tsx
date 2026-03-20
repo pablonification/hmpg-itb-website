@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -9,6 +10,7 @@ import {
   getStore,
   resolveFeaturedReport,
 } from "@/lib/repositories/content-repository";
+import { buildPageMetadata } from "@/lib/seo";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { formatDisplayDate, getReportPreviewImage } from "@/lib/utils";
@@ -18,6 +20,26 @@ interface ReportsPageProps {
 }
 
 const REPORTS_PER_PAGE = 6;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await getStore();
+  const reportsPage = store.pages.reports;
+
+  return buildPageMetadata({
+    title: "Reports",
+    description:
+      reportsPage.heroDescription ||
+      "Arsip laporan, dokumentasi, dan publikasi HMPG ITB.",
+    path: "/reports",
+    image: reportsPage.heroImageSrc,
+    keywords: [
+      "laporan HMPG ITB",
+      "arsip HMPG ITB",
+      "publikasi HMPG ITB",
+      "kegiatan HMPG ITB",
+    ],
+  });
+}
 
 export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const params = await searchParams;

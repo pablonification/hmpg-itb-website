@@ -1,10 +1,33 @@
+import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getStore } from "@/lib/repositories/content-repository";
+import { buildPageMetadata } from "@/lib/seo";
 import { getReportPreviewImage } from "@/lib/utils";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await getStore();
+  const home = store.pages.home;
+  const description =
+    home.summaryParagraphs[0] ||
+    "Portal resmi HMPG ITB untuk mengenal organisasi, aktivitas, dan laporan terbaru.";
+
+  return buildPageMetadata({
+    title: "Himpunan Mahasiswa Teknik Pangan ITB",
+    description,
+    path: "/",
+    image: home.heroImageSrc,
+    keywords: [
+      "HMPG ITB",
+      "Himpunan Mahasiswa Teknik Pangan",
+      "Teknik Pangan ITB",
+      "kegiatan mahasiswa ITB",
+    ],
+  });
+}
 
 export default async function HomePage() {
   const store = await getStore();

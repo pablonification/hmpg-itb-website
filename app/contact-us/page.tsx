@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
+
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getStore } from "@/lib/repositories/content-repository";
+import { buildPageMetadata } from "@/lib/seo";
 
 const platformIcons = {
   instagram: "/assets/figma/contact-social-instagram.svg",
@@ -9,6 +12,21 @@ const platformIcons = {
   x: "/assets/figma/contact-social-x.svg",
   tiktok: "/assets/figma/contact-social-tiktok.svg",
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await getStore();
+  const contact = store.pages.contact;
+
+  return buildPageMetadata({
+    title: "Contact Us",
+    description:
+      contact.heroDescription ||
+      "Hubungi HMPG ITB melalui email resmi dan kanal media sosial organisasi.",
+    path: "/contact-us",
+    image: contact.showcaseImageSrc,
+    keywords: ["kontak HMPG ITB", "email HMPG ITB", "media sosial HMPG ITB"],
+  });
+}
 
 export default async function ContactPage() {
   const store = await getStore();
