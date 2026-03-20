@@ -16,6 +16,7 @@ import {
   buildReportInputFromForm,
   buildSettingsFromForm,
 } from "@/lib/cms/form-values";
+import { seedStore } from "@/lib/data/seed";
 import type { CmsUserRole } from "@/lib/data/types";
 import type { ActivityHighlight } from "@/lib/data/types";
 import {
@@ -46,6 +47,82 @@ function redirectToContent(section: string, message: string) {
 
 function redirectToAssets(message: string) {
   redirect(`/dashboard/assets?message=${encodeURIComponent(message)}` as never);
+}
+
+type SiteAssetSlot = (typeof siteAssetSlots)[number];
+
+function getSiteAssetSlot(formData: FormData) {
+  const targetType = String(formData.get("targetType") ?? "");
+  const targetKey = String(formData.get("targetKey") ?? "");
+  const pageKey = String(formData.get("pageKey") ?? "");
+
+  return siteAssetSlots.find((slot) =>
+    slot.targetType === "settings"
+      ? slot.targetType === targetType && slot.targetKey === targetKey
+      : slot.targetType === targetType &&
+        slot.pageKey === pageKey &&
+        slot.targetKey === targetKey,
+  );
+}
+
+function getDefaultSiteAssetSrc(slot: SiteAssetSlot) {
+  if (slot.targetType === "settings") {
+    return seedStore.settings[slot.targetKey];
+  }
+
+  switch (slot.pageKey) {
+    case "home":
+      return seedStore.pages.home[slot.targetKey];
+    case "about":
+      return seedStore.pages.about[slot.targetKey];
+    case "reports":
+      return seedStore.pages.reports[slot.targetKey];
+    case "contact":
+      return seedStore.pages.contact[slot.targetKey];
+    default:
+      return "";
+  }
+}
+
+async function saveSiteAssetValue(
+  slot: SiteAssetSlot,
+  nextAssetSrc: string,
+  store: Awaited<ReturnType<typeof getStore>>,
+) {
+  if (slot.targetType === "settings") {
+    await saveSettings({
+      ...store.settings,
+      [slot.targetKey]: nextAssetSrc,
+    });
+    return;
+  }
+
+  await savePageContent(slot.pageKey, {
+    ...store.pages[slot.pageKey],
+    [slot.targetKey]: nextAssetSrc,
+  });
+}
+
+function revalidateSiteAssetPaths(slot: SiteAssetSlot) {
+  if (slot.targetType === "settings") {
+    revalidatePath("/", "layout");
+    revalidatePath("/contact-us");
+    revalidatePath("/dashboard/assets");
+    return;
+  }
+
+  const pathMap = {
+    home: "/",
+    about: "/about-us",
+    reports: "/reports",
+    contact: "/contact-us",
+  } as const;
+
+  revalidatePath(pathMap[slot.pageKey]);
+  if (slot.pageKey === "reports") {
+    revalidatePath("/");
+  }
+  revalidatePath("/dashboard/assets");
 }
 
 export async function saveSettingsAction(formData: FormData) {
@@ -213,70 +290,29 @@ export async function uploadCmsAssetAction(formData: FormData) {
   const folder = String(formData.get("folder") ?? "site-assets");
   const nextAssetSrc = await uploadAsset(file, folder);
   const store = await getStore();
-  const targetType = String(formData.get("targetType") ?? "");
-  const targetKey = String(formData.get("targetKey") ?? "");
+  const slot = getSiteAssetSlot(formData);
 
-  if (targetType === "settings") {
-    const allowedSlot = siteAssetSlots.find(
-      (slot) => slot.targetType === "settings" && slot.targetKey === targetKey,
-    );
-
-    if (!allowedSlot) {
-      return;
-    }
-
-    await saveSettings({
-      ...store.settings,
-      [allowedSlot.targetKey]: nextAssetSrc,
-    });
-
-    revalidatePath("/", "layout");
-    revalidatePath("/contact-us");
-    revalidatePath("/dashboard/assets");
-    redirectToAssets("Asset berhasil diperbarui.");
+  if (!slot) {
+    return;
   }
 
-  if (targetType === "page") {
-    const pageKey = String(formData.get("pageKey") ?? "");
-    const allowedSlot = siteAssetSlots.find(
-      (slot) =>
-        slot.targetType === "page" &&
-        slot.pageKey === pageKey &&
-        slot.targetKey === targetKey,
-    );
+  await saveSiteAssetValue(slot, nextAssetSrc, store);
+  revalidateSiteAssetPaths(slot);
+  redirectToAssets("Asset berhasil diperbarui.");
+}
 
-    if (
-      pageKey !== "home" &&
-      pageKey !== "about" &&
-      pageKey !== "reports" &&
-      pageKey !== "contact"
-    ) {
-      return;
-    }
+export async function restoreCmsAssetAction(formData: FormData) {
+  await requireAdminSession();
+  const store = await getStore();
+  const slot = getSiteAssetSlot(formData);
 
-    if (!allowedSlot) {
-      return;
-    }
-
-    await savePageContent(pageKey, {
-      ...store.pages[pageKey],
-      [allowedSlot.targetKey]: nextAssetSrc,
-    });
-
-    const pathMap = {
-      home: "/",
-      about: "/about-us",
-      reports: "/reports",
-      contact: "/contact-us",
-    } as const;
-
-    revalidatePath(pathMap[pageKey]);
-    if (pageKey === "reports") {
-      revalidatePath("/");
-    }
-    revalidatePath("/dashboard/assets");
-    redirectToAssets("Asset berhasil diperbarui.");
+  if (!slot) {
+    return;
   }
+
+  await saveSiteAssetValue(slot, getDefaultSiteAssetSrc(slot), store);
+  revalidateSiteAssetPaths(slot);
+  redirectToAssets("Asset default berhasil dipulihkan.");
 }
 
 export async function uploadLogoAction(formData: FormData) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes, KeyboardEvent } from "react";
 
 import { Eye, EyeOff } from "lucide-react";
 
@@ -16,10 +16,30 @@ type DashboardAuthInputProps = Omit<
 const inputClassName =
   "h-12 w-full border border-b-2 border-[#dfbfbc] bg-transparent px-11 pr-11 text-base text-[#1f1b10] outline-none transition-colors placeholder:text-[rgba(91,91,129,0.4)] focus:border-[#831618]";
 
+function handleEnterSubmit(event: KeyboardEvent<HTMLInputElement>) {
+  if (
+    event.key !== "Enter" ||
+    event.shiftKey ||
+    event.nativeEvent.isComposing
+  ) {
+    return;
+  }
+
+  const form = event.currentTarget.form;
+
+  if (!form) {
+    return;
+  }
+
+  event.preventDefault();
+  form.requestSubmit();
+}
+
 export function DashboardAuthInput({
   label,
   icon,
   className,
+  onKeyDown,
   ...props
 }: DashboardAuthInputProps) {
   return (
@@ -52,6 +72,13 @@ export function DashboardAuthInput({
         ) : null}
         <input
           className={`${inputClassName} ${className ?? ""}`.trim()}
+          onKeyDown={(event) => {
+            onKeyDown?.(event);
+
+            if (!event.defaultPrevented) {
+              handleEnterSubmit(event);
+            }
+          }}
           {...props}
         />
       </div>
@@ -61,6 +88,7 @@ export function DashboardAuthInput({
 
 export function DashboardAuthPasswordInput({
   label,
+  onKeyDown,
   ...props
 }: Omit<DashboardAuthInputProps, "icon" | "type">) {
   const [isVisible, setIsVisible] = useState(false);
@@ -96,6 +124,13 @@ export function DashboardAuthPasswordInput({
         </svg>
         <input
           className={inputClassName}
+          onKeyDown={(event) => {
+            onKeyDown?.(event);
+
+            if (!event.defaultPrevented) {
+              handleEnterSubmit(event);
+            }
+          }}
           type={isVisible ? "text" : "password"}
           {...props}
         />

@@ -84,6 +84,7 @@ export const seedPages: PageContentMap = {
       "Seiring dengan berdirinya program studi, Himpunan Mahasiswa Teknik Pangan (HMPG) ITB mulai dirintis oleh angkatan 2015 pada masa akhir Tahap Persiapan Bersama. Melalui diskusi bersama HIMATEK ITB, diputuskan bahwa HMPG ITB berdiri secara mandiri, dengan dukungan awal berupa pembinaan dan pelaksanaan ospek jurusan. HMPG ITB kemudian resmi didirikan pada 12 Mei 2015 dan terus berkembang sebagai wadah bagi mahasiswa Teknik Pangan untuk berorganisasi, mengembangkan potensi, serta mempererat kebersamaan.",
     ],
     historyImageSrc: "/assets/figma/about-campus-building-edited.png",
+    visionBadgeSrc: "/assets/figma/about-vision-badge.png",
     vision:
       "HMPG ITB as a space where personal and professional growth synchronize within a collaborative, impactful, and sustainable learning environment.",
     missions: [

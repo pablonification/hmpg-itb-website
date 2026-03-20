@@ -116,7 +116,7 @@ export default async function AboutPage() {
                   alt=""
                   aria-hidden="true"
                   className="absolute top-[-10px] right-3 h-[112px] w-[112px] object-contain sm:top-[-18px] sm:right-4 sm:h-[144px] sm:w-[144px] md:top-[-24px] md:right-5 md:h-[168px] md:w-[168px] lg:top-[-32px] lg:right-7 lg:h-[180px] lg:w-[180px]"
-                  src="/assets/figma/about-vision-badge.png"
+                  src={about.visionBadgeSrc}
                 />
                 <div className="max-w-[48rem]" data-reveal-ignore>
                   <p className="font-manrope text-[12px] font-bold tracking-[0.3em] text-[#ffc3bd] uppercase">

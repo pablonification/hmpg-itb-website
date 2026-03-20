@@ -68,6 +68,7 @@ export interface AboutPageContent {
   historyTitle: string;
   historyParagraphs: string[];
   historyImageSrc: string;
+  visionBadgeSrc: string;
   vision: string;
   missions: string[];
   values: string[];

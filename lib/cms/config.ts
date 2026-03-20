@@ -113,7 +113,12 @@ export const dashboardContentTabs = [
 
 export const assetManagedPageFieldKeys = {
   home: ["heroImageSrc"],
-  about: ["heroImageSrc", "historyImageSrc", "logoShowcaseSrc"],
+  about: [
+    "heroImageSrc",
+    "historyImageSrc",
+    "visionBadgeSrc",
+    "logoShowcaseSrc",
+  ],
   reports: ["heroImageSrc", "featuredReportSlug"],
   contact: ["showcaseImageSrc"],
 } as const satisfies Record<PageContentKey, readonly string[]>;
@@ -219,11 +224,6 @@ export const pageContentSections = {
           key: "summaryParagraphs",
           kind: "multiline",
           label: "Summary paragraphs",
-        },
-        {
-          key: "summaryTextureSrc",
-          kind: "url",
-          label: "Summary texture URL",
         },
         {
           key: "reportsSectionEyebrow",
@@ -333,11 +333,6 @@ export const pageContentSections = {
           kind: "url",
           label: "Logo image URL",
           description: "Dikelola dari halaman Assets.",
-        },
-        {
-          key: "identityTextureSrc",
-          kind: "url",
-          label: "Identity texture URL",
         },
       ],
     },
@@ -567,6 +562,15 @@ export const siteAssetSlots = [
     targetType: "page",
     pageKey: "about",
     targetKey: "historyImageSrc",
+  },
+  {
+    id: "page.about.visionBadgeSrc",
+    label: "Vision badge image",
+    description: "Badge dekoratif pada kartu visi di halaman About Us.",
+    folder: "site-assets",
+    targetType: "page",
+    pageKey: "about",
+    targetKey: "visionBadgeSrc",
   },
   {
     id: "page.about.logoShowcaseSrc",

@@ -5,9 +5,13 @@ import {
   DashboardPanel,
   DashboardPanelHeader,
 } from "@/components/dashboard/dashboard-primitives";
-import { uploadCmsAssetAction } from "@/lib/actions/admin";
+import {
+  restoreCmsAssetAction,
+  uploadCmsAssetAction,
+} from "@/lib/actions/admin";
 import { requireAdminSession } from "@/lib/auth/session";
 import { siteAssetSlots } from "@/lib/cms/config";
+import { seedStore } from "@/lib/data/seed";
 import { getStore } from "@/lib/repositories/content-repository";
 
 interface DashboardAssetsPageProps {
@@ -44,15 +48,18 @@ export default async function DashboardAssetsPage({
         <div className="mt-5 grid gap-5 xl:grid-cols-2">
           {siteAssetSlots.map((slot) => {
             const currentSrc = getSiteAssetSrc(store, slot);
+            const defaultSrc = getDefaultSiteAssetSrc(slot);
 
             return (
               <AssetUploadCard
                 action={uploadCmsAssetAction}
                 currentSrc={String(currentSrc ?? "")}
+                defaultSrc={String(defaultSrc ?? "")}
                 description={slot.description}
                 folder={slot.folder}
                 key={slot.id}
                 label={slot.label}
+                restoreAction={restoreCmsAssetAction}
                 targetKey={slot.targetKey}
                 targetType={slot.targetType}
                 {...(slot.targetType === "page"
@@ -84,6 +91,25 @@ function getSiteAssetSrc(
       return store.pages.reports[slot.targetKey];
     case "contact":
       return store.pages.contact[slot.targetKey];
+    default:
+      return "";
+  }
+}
+
+function getDefaultSiteAssetSrc(slot: (typeof siteAssetSlots)[number]) {
+  if (slot.targetType === "settings") {
+    return seedStore.settings[slot.targetKey];
+  }
+
+  switch (slot.pageKey) {
+    case "home":
+      return seedStore.pages.home[slot.targetKey];
+    case "about":
+      return seedStore.pages.about[slot.targetKey];
+    case "reports":
+      return seedStore.pages.reports[slot.targetKey];
+    case "contact":
+      return seedStore.pages.contact[slot.targetKey];
     default:
       return "";
   }

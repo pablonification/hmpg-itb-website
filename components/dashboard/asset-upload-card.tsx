@@ -4,35 +4,109 @@ import { useRef, useState } from "react";
 import { Upload, ImageUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  CMS_UPLOAD_SIZE_LIMIT_LABEL,
+  cn,
+  getCmsImageUploadError,
+} from "@/lib/utils";
 
 export function AssetUploadCard({
   label,
   description,
   currentSrc,
+  defaultSrc,
   targetType,
   targetKey,
   folder,
   pageKey,
   action,
+  restoreAction,
 }: {
   label: string;
   description: string;
   currentSrc: string;
+  defaultSrc: string;
   targetType: "settings" | "page";
   targetKey: string;
   folder: string;
   pageKey?: string;
   action: (formData: FormData) => Promise<void>;
+  restoreAction: (formData: FormData) => Promise<void>;
 }) {
+  const previewImageRef = useRef<HTMLImageElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isRestoreSubmitRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [fileError, setFileError] = useState("");
+  const [currentDimensions, setCurrentDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const isUsingDefault = currentSrc === defaultSrc;
+
+  function clearSelectedFile() {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+
+    setFileName("");
+  }
+
+  function handleSelectedFile(file: File | null) {
+    if (!file) {
+      clearSelectedFile();
+      setFileError("");
+      return;
+    }
+
+    const validationError = getCmsImageUploadError(file);
+
+    if (validationError) {
+      clearSelectedFile();
+      setFileError(validationError);
+      return;
+    }
+
+    setFileError("");
+    setFileName(file.name);
+  }
+
+  function validateBeforeSubmit() {
+    const file = inputRef.current?.files?.[0] ?? null;
+
+    if (!file) {
+      setFileError("Pilih file gambar terlebih dahulu.");
+      return false;
+    }
+
+    const validationError = getCmsImageUploadError(file);
+
+    if (validationError) {
+      setFileError(validationError);
+      return false;
+    }
+
+    setFileError("");
+    return true;
+  }
 
   return (
     <form
       action={action}
       className="border-brand-sand/70 rounded-[1.8rem] border bg-white p-5 shadow-[0_12px_30px_rgba(76,41,18,0.06)]"
+      onSubmit={(event) => {
+        if (isRestoreSubmitRef.current) {
+          isRestoreSubmitRef.current = false;
+          return;
+        }
+
+        if (validateBeforeSubmit()) {
+          return;
+        }
+
+        event.preventDefault();
+      }}
     >
       <input name="folder" type="hidden" value={folder} />
       <input name="targetType" type="hidden" value={targetType} />
@@ -44,6 +118,14 @@ export function AssetUploadCard({
           <img
             alt={label}
             className="h-56 w-full object-cover"
+            key={currentSrc}
+            onLoad={(event) => {
+              setCurrentDimensions({
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              });
+            }}
+            ref={previewImageRef}
             src={currentSrc}
           />
         ) : (
@@ -58,6 +140,17 @@ export function AssetUploadCard({
           {label}
         </h3>
         <p className="text-brand-body mt-2 text-sm leading-6">{description}</p>
+        <p className="text-brand-body mt-2 text-xs leading-6">
+          {isUsingDefault
+            ? "Sedang memakai asset default."
+            : "Sedang memakai asset kustom."}
+        </p>
+        {currentDimensions ? (
+          <p className="text-brand-maroon mt-2 text-xs leading-6 font-semibold">
+            Rekomendasi ukuran: {currentDimensions.width} ×{" "}
+            {currentDimensions.height} px
+          </p>
+        ) : null}
       </div>
 
       <div
@@ -86,10 +179,18 @@ export function AssetUploadCard({
             return;
           }
 
+          const validationError = getCmsImageUploadError(file);
+
+          if (validationError) {
+            clearSelectedFile();
+            setFileError(validationError);
+            return;
+          }
+
           const dataTransfer = new DataTransfer();
           dataTransfer.items.add(file);
           inputRef.current.files = dataTransfer.files;
-          setFileName(file.name);
+          handleSelectedFile(file);
         }}
       >
         <div className="flex items-start gap-3">
@@ -107,13 +208,13 @@ export function AssetUploadCard({
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <input
+            accept="image/*"
             className="hidden"
             name="assetFile"
             onChange={(event) =>
-              setFileName(event.target.files?.[0]?.name ?? "")
+              handleSelectedFile(event.target.files?.[0] ?? null)
             }
             ref={inputRef}
-            required
             type="file"
           />
           <Button
@@ -129,10 +230,48 @@ export function AssetUploadCard({
             {fileName || "Belum ada file dipilih"}
           </span>
         </div>
+        {fileError ? (
+          <p className="mt-3 rounded-[0.9rem] border border-[#831618]/18 bg-[#831618]/8 px-3 py-2 text-sm font-medium text-[#831618]">
+            {fileError}
+          </p>
+        ) : (
+          <p className="text-brand-body mt-3 text-xs leading-6">
+            Gunakan gambar hingga {CMS_UPLOAD_SIZE_LIMIT_LABEL}.
+          </p>
+        )}
       </div>
 
-      <div className="mt-5">
-        <Button type="submit">Ganti asset</Button>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Button
+          onClick={() => {
+            isRestoreSubmitRef.current = false;
+          }}
+          type="submit"
+        >
+          Ganti asset
+        </Button>
+        <Button
+          disabled={isUsingDefault}
+          formAction={restoreAction}
+          formNoValidate
+          onClick={(event) => {
+            isRestoreSubmitRef.current = true;
+
+            if (
+              !isUsingDefault &&
+              !window.confirm(
+                "Pulihkan asset ini ke versi default bawaan situs?",
+              )
+            ) {
+              isRestoreSubmitRef.current = false;
+              event.preventDefault();
+            }
+          }}
+          type="submit"
+          variant="outline"
+        >
+          Restore default
+        </Button>
       </div>
     </form>
   );

@@ -1,7 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import type { ReportRecord } from "@/lib/data/types";
+import type { ReportRecord, ReportStatus } from "@/lib/data/types";
+
+export const CMS_UPLOAD_SIZE_LIMIT_BYTES = 3 * 1024 * 1024;
+export const CMS_UPLOAD_SIZE_LIMIT_LABEL = "3 MB";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,6 +22,36 @@ export function formatDisplayDate(value: string) {
     month: "long",
     year: "numeric",
   }).format(date);
+}
+
+export function formatReportStatusLabel(status: ReportStatus) {
+  return status === "published" ? "Published" : "Draft";
+}
+
+export function normalizeRichTextHref(href: string) {
+  const normalizedHref = href.trim();
+
+  if (!normalizedHref) {
+    return "";
+  }
+
+  if (
+    normalizedHref.startsWith("/") ||
+    normalizedHref.startsWith("#") ||
+    normalizedHref.startsWith("//")
+  ) {
+    return normalizedHref;
+  }
+
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(normalizedHref)) {
+    return normalizedHref;
+  }
+
+  if (/^[a-z][a-z0-9+.-]*:/i.test(normalizedHref)) {
+    return normalizedHref;
+  }
+
+  return `https://${normalizedHref}`;
 }
 
 export function slugify(value: string) {
@@ -82,7 +115,40 @@ export function sanitizeRichTextHtml(html: string) {
       /\s+(href|src)\s*=\s*(['"])\s*(javascript:|data:text\/html)[\s\S]*?\2/gi,
       "",
     )
-    .replace(/\s+(href|src)\s*=\s*(javascript:|data:text\/html)[^\s>]*/gi, "");
+    .replace(/\s+(href|src)\s*=\s*(javascript:|data:text\/html)[^\s>]*/gi, "")
+    .replace(
+      /\s+href\s*=\s*(["'])(.*?)\1/gi,
+      (_, quote: string, href: string) => {
+        const normalizedHref = normalizeRichTextHref(href);
+
+        if (!normalizedHref) {
+          return "";
+        }
+
+        return ` href=${quote}${normalizedHref}${quote}`;
+      },
+    )
+    .replace(/\s+href\s*=\s*(?!["'])([^\s>]+)/gi, (_, href: string) => {
+      const normalizedHref = normalizeRichTextHref(href);
+
+      if (!normalizedHref) {
+        return "";
+      }
+
+      return ` href="${normalizedHref}"`;
+    });
+}
+
+export function getCmsImageUploadError(file: File) {
+  if (!file.type.startsWith("image/")) {
+    return "File harus berupa gambar.";
+  }
+
+  if (file.size > CMS_UPLOAD_SIZE_LIMIT_BYTES) {
+    return `Ukuran file melebihi batas ${CMS_UPLOAD_SIZE_LIMIT_LABEL}.`;
+  }
+
+  return null;
 }
 
 export function compareReportsByPublishedAtDesc(

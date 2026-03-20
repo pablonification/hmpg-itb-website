@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canManageReports } from "@/lib/auth/rbac";
 import { getCmsSession } from "@/lib/auth/session";
 import { uploadAsset } from "@/lib/repositories/content-repository";
+import { getCmsImageUploadError } from "@/lib/utils";
 
 export async function POST(request: Request) {
   const session = await getCmsSession();
@@ -25,11 +26,10 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json(
-      { error: "File harus berupa gambar." },
-      { status: 400 },
-    );
+  const validationError = getCmsImageUploadError(file);
+
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   const src = await uploadAsset(file, "report-media/inline");
