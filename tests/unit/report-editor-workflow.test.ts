@@ -36,6 +36,37 @@ describe("report editor workflow helpers", () => {
     expect(state.slug).toBe(existingReport.slug);
   });
 
+  it("keeps draft publishedAt empty in app state for brand-new drafts", () => {
+    const state = deriveReportSaveState({
+      title: "Draft Baru HMPG",
+      status: "draft",
+      category: "editorial",
+    });
+
+    expect(state.publishedAt).toBe("");
+    expect(state.year).toBe("");
+  });
+
+  it("assigns a fresh publishedAt when a draft is published later", () => {
+    const draftReport = {
+      ...seedReports[0]!,
+      status: "draft" as const,
+      publishedAt: "",
+      year: "",
+    };
+    const state = deriveReportSaveState(
+      {
+        title: draftReport.title,
+        status: "published",
+        category: draftReport.category,
+      },
+      draftReport,
+    );
+
+    expect(state.publishedAt).toMatch(/^20\d\d-/);
+    expect(state.year).toMatch(/^20\d\d$/);
+  });
+
   it("keeps only one featured report active at a time", () => {
     const target = {
       ...seedReports[1]!,

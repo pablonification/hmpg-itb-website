@@ -123,6 +123,7 @@ function FilePickerField({
 
 export function ReportWorkspace({
   currentQuery,
+  error,
   reports,
   selectedReport,
   isAdmin,
@@ -134,6 +135,7 @@ export function ReportWorkspace({
   totalReports,
 }: {
   currentQuery: string;
+  error?: string | null;
   reports: ReportRecord[];
   selectedReport: ReportRecord | undefined;
   isAdmin: boolean;
@@ -252,6 +254,12 @@ export function ReportWorkspace({
       {message ? (
         <div className="border-brand-sand/70 rounded-[1.5rem] border bg-[#eef8ef] px-4 py-3 text-sm font-medium text-[#1f5d33]">
           {message}
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-[1.5rem] border border-[#831618]/18 bg-[#831618]/8 px-4 py-3 text-sm font-medium text-[#831618]">
+          {error}
         </div>
       ) : null}
 

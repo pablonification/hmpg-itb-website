@@ -29,12 +29,14 @@ export default async function DashboardReportsPage({
       ? (reports.find((report) => report.slug === selectedSlug) ?? reports[0])
       : reports[0];
   const message = typeof params.message === "string" ? params.message : null;
+  const error = typeof params.error === "string" ? params.error : null;
 
   return (
     <AdminShell pathname="/dashboard/reports" session={session}>
       <ReportWorkspace
         currentQuery={currentQuery}
         deleteAction={deleteReportAction}
+        error={error}
         isAdmin={session.role === "admin"}
         isCreatingNew={creatingNew}
         isViewingSelectedReport={Boolean(selectedSlug)}

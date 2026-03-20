@@ -139,6 +139,18 @@ function getPublishedAtValue(
   return nextStatus === "published" ? new Date().toISOString() : "";
 }
 
+function getPersistedPublishedAtValue(
+  report: Pick<ReportRecord, "status" | "publishedAt">,
+) {
+  if (getNonEmptyString(report.publishedAt)) {
+    return report.publishedAt;
+  }
+
+  // Draft rows still need a concrete timestamptz value in Supabase.
+  // We persist a placeholder timestamp, then hide it again when reading drafts.
+  return new Date().toISOString();
+}
+
 function getDerivedYear(
   publishedAt: string,
   existingValue: string | undefined,
@@ -281,6 +293,8 @@ export async function getStore() {
 
 function fromSupabaseReportRow(row: unknown): ReportRecord {
   const value = row as Record<string, unknown>;
+  const status = (value.status as ReportRecord["status"]) ?? "draft";
+  const publishedAt = getNonEmptyString(value.published_at) ?? "";
 
   return buildReportRecord(
     {
@@ -291,12 +305,12 @@ function fromSupabaseReportRow(row: unknown): ReportRecord {
       category: String(value.category),
       categoryLabel: String(value.category_label),
       coverImageSrc: getNonEmptyString(value.cover_image_src) ?? "",
-      publishedAt: getNonEmptyString(value.published_at) ?? "",
+      publishedAt: status === "published" ? publishedAt : "",
       year: getNonEmptyString(value.year) ?? "",
       periodLabel: getNonEmptyString(value.period_label) ?? "",
       editionLabel: getNonEmptyString(value.edition_label) ?? "",
       author: getNonEmptyString(value.author) ?? "",
-      status: (value.status as ReportRecord["status"]) ?? "draft",
+      status,
       featured: Boolean(value.featured),
       bodyHtml: String(value.body_html),
       relatedSlugs: Array.isArray(value.related_slugs)
@@ -620,7 +634,7 @@ export async function saveReport(
         category: report.category,
         category_label: report.categoryLabel,
         cover_image_src: report.coverImageSrc,
-        published_at: report.publishedAt,
+        published_at: getPersistedPublishedAtValue(report),
         year: report.year,
         period_label: report.periodLabel,
         edition_label: report.editionLabel,

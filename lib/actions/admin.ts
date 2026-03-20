@@ -49,6 +49,10 @@ function redirectToAssets(message: string) {
   redirect(`/dashboard/assets?message=${encodeURIComponent(message)}` as never);
 }
 
+function redirectToReports(params: URLSearchParams) {
+  redirect(`/dashboard/reports?${params.toString()}` as never);
+}
+
 type SiteAssetSlot = (typeof siteAssetSlots)[number];
 
 function getSiteAssetSlot(formData: FormData) {
@@ -218,48 +222,78 @@ export async function saveContactContentAction(formData: FormData) {
 }
 
 export async function saveReportAction(formData: FormData) {
-  const session = await requireReportsSession();
-  const store = await getStore();
-  const returnQuery = String(formData.get("returnQuery") ?? "").trim();
-  const reportId = String(formData.get("id") ?? "").trim();
-  const currentReport = reportId
-    ? store.reports.find((report) => report.id === reportId)
-    : undefined;
-  const coverFile = formData.get("coverImageFile");
-  let coverImageSrc = String(formData.get("coverImageSrc") ?? "");
+  try {
+    const session = await requireReportsSession();
+    const store = await getStore();
+    const returnQuery = String(formData.get("returnQuery") ?? "").trim();
+    const reportId = String(formData.get("id") ?? "").trim();
+    const currentReport = reportId
+      ? store.reports.find((report) => report.id === reportId)
+      : undefined;
+    const coverFile = formData.get("coverImageFile");
+    let coverImageSrc = String(formData.get("coverImageSrc") ?? "");
 
-  if (coverFile instanceof File && coverFile.size > 0) {
-    coverImageSrc = await uploadAsset(coverFile, "report-media/previews");
+    if (coverFile instanceof File && coverFile.size > 0) {
+      coverImageSrc = await uploadAsset(coverFile, "report-media/previews");
+    }
+
+    const nextReport = buildReportInputFromForm(formData, currentReport);
+    const nextSlug = nextReport.slug || currentReport?.slug;
+
+    const savedReport = await saveReport({
+      ...nextReport,
+      ...(session.role === "admin" && nextSlug ? { slug: nextSlug } : {}),
+      ...(session.role === "admin"
+        ? { publishedAt: nextReport.publishedAt }
+        : {}),
+      coverImageSrc,
+      bodyHtml: sanitizeRichTextHtml(nextReport.bodyHtml),
+    });
+
+    revalidatePath("/dashboard/reports");
+    revalidatePath("/reports");
+    revalidatePath("/");
+    revalidatePath(`/reports/${savedReport.slug}`);
+    revalidatePath(`/dashboard/reports/preview/${savedReport.slug}`);
+    const searchParams = new URLSearchParams({
+      report: savedReport.slug,
+      message: "Laporan berhasil disimpan.",
+    });
+
+    if (returnQuery) {
+      searchParams.set("query", returnQuery);
+    }
+
+    redirectToReports(searchParams);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    const returnQuery = String(formData.get("returnQuery") ?? "").trim();
+    const reportId = String(formData.get("id") ?? "").trim();
+    const isCreatingNew = !reportId;
+    const message =
+      error instanceof Error ? error.message : "Gagal menyimpan laporan.";
+    const searchParams = new URLSearchParams({
+      error: message,
+    });
+
+    if (returnQuery) {
+      searchParams.set("query", returnQuery);
+    }
+
+    if (isCreatingNew) {
+      searchParams.set("new", "1");
+    } else {
+      const reportSlug = String(formData.get("slug") ?? "").trim();
+      if (reportSlug) {
+        searchParams.set("report", reportSlug);
+      }
+    }
+
+    redirectToReports(searchParams);
   }
-
-  const nextReport = buildReportInputFromForm(formData, currentReport);
-  const nextSlug = nextReport.slug || currentReport?.slug;
-
-  const savedReport = await saveReport({
-    ...nextReport,
-    ...(session.role === "admin" && nextSlug ? { slug: nextSlug } : {}),
-    ...(session.role === "admin"
-      ? { publishedAt: nextReport.publishedAt }
-      : {}),
-    coverImageSrc,
-    bodyHtml: sanitizeRichTextHtml(nextReport.bodyHtml),
-  });
-
-  revalidatePath("/dashboard/reports");
-  revalidatePath("/reports");
-  revalidatePath("/");
-  revalidatePath(`/reports/${savedReport.slug}`);
-  revalidatePath(`/dashboard/reports/preview/${savedReport.slug}`);
-  const searchParams = new URLSearchParams({
-    report: savedReport.slug,
-    message: "Laporan berhasil disimpan.",
-  });
-
-  if (returnQuery) {
-    searchParams.set("query", returnQuery);
-  }
-
-  redirect(`/dashboard/reports?${searchParams.toString()}`);
 }
 
 export async function deleteReportAction(formData: FormData) {
