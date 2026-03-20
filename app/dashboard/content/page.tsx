@@ -7,6 +7,7 @@ import {
   DashboardPanel,
   DashboardPanelHeader,
 } from "@/components/dashboard/dashboard-primitives";
+import { ScrollToTarget } from "@/components/dashboard/scroll-to-target";
 import { Button } from "@/components/ui/button";
 import {
   assetManagedPageFieldKeys,
@@ -57,6 +58,8 @@ export default async function DashboardContentPage({
 
   return (
     <AdminShell pathname="/dashboard/content" session={session}>
+      {message ? <ScrollToTarget targetId="content-save-feedback" /> : null}
+
       <DashboardPageHeader
         description="Kelola konten publik per halaman. Field visual dikelola terpisah di modul Assets."
         eyebrow="Content"
@@ -64,7 +67,10 @@ export default async function DashboardContentPage({
       />
 
       {message ? (
-        <div className="border-brand-sand/70 rounded-[1.5rem] border bg-[#eef8ef] px-4 py-3 text-sm font-medium text-[#1f5d33]">
+        <div
+          className="border-brand-sand/70 rounded-[1.5rem] border bg-[#eef8ef] px-4 py-3 text-sm font-medium text-[#1f5d33]"
+          id="content-save-feedback"
+        >
           {message}
         </div>
       ) : null}

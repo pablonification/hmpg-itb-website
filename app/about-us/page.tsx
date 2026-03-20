@@ -103,7 +103,7 @@ export default async function AboutPage() {
             </div>
 
             <div className="space-y-4 self-center pt-[40.58px]">
-              <p className="font-manrope text-[12px] font-bold tracking-[0.05em] text-[#831618] uppercase">
+              <p className="font-manrope text-[14px] font-bold tracking-[0.2em] text-[#831618] uppercase">
                 {about.historyEyebrow}
               </p>
               <h2 className="font-epilogue max-w-[664px] text-[36px] leading-[40px] font-bold text-[#1f1b10]">
@@ -124,7 +124,7 @@ export default async function AboutPage() {
               <h2 className="font-epilogue text-[36px] font-extrabold tracking-[-0.025em] text-[#1f1b10]">
                 {about.valuesSectionTitle}
               </h2>
-              <p className="font-manrope mt-4 text-[12px] font-bold tracking-[0.3em] text-[#5b5b81] uppercase">
+              <p className="font-manrope mt-4 text-[14px] font-bold tracking-[0.2em] text-[#5b5b81] uppercase">
                 {about.valuesSectionPeriodLabel}
               </p>
             </div>
@@ -141,7 +141,7 @@ export default async function AboutPage() {
                   src={about.visionBadgeSrc}
                 />
                 <div className="max-w-[48rem]" data-reveal-ignore>
-                  <p className="font-manrope text-[12px] font-bold tracking-[0.3em] text-[#ffc3bd] uppercase">
+                  <p className="font-manrope text-[14px] font-bold tracking-[0.2em] text-[#ffc3bd] uppercase">
                     Visi
                   </p>
                   <p className="font-epilogue mt-6 max-w-[768px] text-[32px] leading-[1.2] font-bold md:text-[36px] md:leading-[40px]">
@@ -155,7 +155,7 @@ export default async function AboutPage() {
                 data-reveal="card"
               >
                 <div data-reveal-ignore>
-                  <p className="font-manrope text-[12px] font-bold tracking-[0.1em] text-[#831618] uppercase">
+                  <p className="font-manrope text-[14px] font-bold tracking-[0.2em] text-[#831618] uppercase">
                     Misi
                   </p>
                   <div className="mt-8 space-y-3">
@@ -181,7 +181,7 @@ export default async function AboutPage() {
                   className="flex flex-col gap-6 md:flex-row md:items-center"
                   data-reveal-ignore
                 >
-                  <p className="font-manrope shrink-0 text-[12px] font-bold tracking-[0.1em] text-[#2d2b21] uppercase md:mr-12 lg:mr-16">
+                  <p className="font-manrope shrink-0 text-[14px] font-bold tracking-[0.2em] text-[#2d2b21] uppercase md:mr-12 lg:mr-16">
                     Nilai
                   </p>
                   <div className="flex flex-1 flex-wrap items-center justify-between gap-x-8 gap-y-4 md:pr-8 lg:pr-16">
@@ -213,7 +213,7 @@ export default async function AboutPage() {
         <section className="bg-[#fff8f0] px-6 pt-[60px] pb-[96px] sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1232px]">
             <div className="text-center">
-              <p className="font-manrope text-[12px] font-bold tracking-[0.05em] text-[#831618] uppercase">
+              <p className="font-manrope text-[14px] font-bold tracking-[0.2em] text-[#831618] uppercase">
                 {about.identitySectionEyebrow}
               </p>
               <h2 className="font-epilogue mt-3 text-[36px] font-bold text-[#1f1b10]">
